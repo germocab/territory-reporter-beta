@@ -460,6 +460,9 @@
   .host-fab svg { stroke: var(--text); }
   .host-theme-btn { right: 16px; }
   .host-back-btn  { left: 16px; }
+
+  /* Per-territory accent color — set dynamically via JS on the host-screen element */
+  #host-screen { --territory-color: var(--gold); }
 </style>
 </head>
 <body>
@@ -567,7 +570,12 @@
       <!-- Inline create form (collapsible) -->
       <div id="create-form-inline" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:28px;animation:fadeUp .25s ease">
         <p style="font-size:15px;font-weight:600;margin-bottom:4px">Nuevo formulario</p>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Puedes asignar hasta 3 territorios por enlace</p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Puedes asignar hasta 3 territorios por enlace</p>
+        <div id="migration-note" style="background:var(--gold-pale);border:1px solid var(--gold-dim);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--gold);display:flex;align-items:flex-start;gap:8px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Para que los territorios con número repetido funcionen correctamente, ejecuta en Supabase SQL Editor: <code style="background:rgba(0,0,0,0.15);padding:1px 5px;border-radius:4px;font-family:monospace">ALTER TABLE territory_forms ADD COLUMN IF NOT EXISTS territory_ids jsonb; ALTER TABLE territory_reports ADD COLUMN IF NOT EXISTS territory_id text;</code></span>
+          <button onclick="document.getElementById('migration-note').remove()" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:0;margin-left:auto;flex-shrink:0;font-size:16px;line-height:1">×</button>
+        </div>
         <div class="create-form-grid">
           <div class="form-group">
             <label>Publicador</label>
@@ -632,15 +640,35 @@
         <span id="reports-count" style="font-size:13px;color:var(--text-muted)"></span>
         <button class="btn btn-ghost" onclick="loadReports()" style="padding:7px 14px;font-size:12px">↺ Actualizar</button>
       </div>
-      <div id="reports-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <div id="reports-cards">
         <div style="text-align:center;padding:60px;color:var(--text-muted)"><div class="spinner"></div></div>
       </div>
     </div>
 
     <!-- ── TERRITORIES ── -->
     <div id="panel-territories" class="admin-panel">
-      <p class="panel-title">Territorios</p>
-      <p class="panel-subtitle">Gestión de los 36 territorios y sus manzanas</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px;flex-wrap:wrap">
+        <div>
+          <p class="panel-title" style="margin-bottom:4px">Territorios</p>
+          <p class="panel-subtitle" style="margin-bottom:0" id="territories-subtitle">Cargando...</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:3px;gap:2px">
+            <button id="filter-btn-number" onclick="setTerritoryFilter('number')"
+              style="border:none;cursor:pointer;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;font-family:'Instrument Sans',sans-serif;transition:all .15s;background:var(--gold);color:#0f0f0f">
+              # Número
+            </button>
+            <button id="filter-btn-frequency" onclick="setTerritoryFilter('frequency')"
+              style="border:none;cursor:pointer;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;font-family:'Instrument Sans',sans-serif;transition:all .15s;background:transparent;color:var(--text-muted)">
+              ↻ Frecuencia
+            </button>
+          </div>
+          <button class="btn btn-gold" onclick="openTerritoryModal(null)">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Añadir territorio
+          </button>
+        </div>
+      </div>
       <div id="territories-grid" class="forms-grid">
         <div class="empty-state"><div class="spinner"></div></div>
       </div>
@@ -667,28 +695,18 @@
     <p class="host-welcome-sub" id="host-welcome-sub">Toca un territorio para reportarlo.</p>
     <!-- Territory map cards (injected by JS) -->
     <div id="host-territory-cards" style="width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:24px"></div>
-    <!-- All done state -->
-    <div id="host-all-done" class="hidden" style="text-align:center;width:100%">
+    <!-- All done state (hidden until all reported) -->
+    <div id="host-all-done" class="hidden" style="text-align:center">
       <div class="sent-icon" style="margin:0 auto 16px">
         <svg width="32" height="32" fill="none" stroke="var(--green)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px">¡Todo enviado!</h2>
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:28px">Todos los territorios han sido reportados.</p>
-      <button class="btn btn-gold" onclick="showExtraPicker()" style="width:100%;justify-content:center;padding:15px;font-size:15px">
-        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <button class="btn btn-gold" onclick="hostStep(3)" style="padding:13px 28px;font-size:14px">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         Nuevo territorio
       </button>
     </div>
-  </div>
-
-  <!-- Step 4: Extra territory picker -->
-  <div id="host-step-4" class="host-select hidden" style="padding-bottom:32px">
-    <!-- Back button handled by host-back-btn (shown in JS) -->
-    <div style="padding-top:8px;margin-bottom:20px">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px">Nuevo territorio</h2>
-      <p style="color:var(--text-muted);font-size:13px">Selecciona el territorio que realizaste</p>
-    </div>
-    <div id="extra-territory-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- Step 1: Select manzanas -->
@@ -699,9 +717,8 @@
 
   <div id="host-step-1" class="host-select hidden">
     <div class="host-select-header" style="padding-top:8px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-        <div class="territory-num" id="host-sel-num">5</div>
-        <h2 style="font-family:'DM Serif Display',serif;font-size:22px">Territorio <span id="host-sel-territory"></span></h2>
+      <div style="margin-bottom:4px">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:28px">Territorio <span id="host-sel-territory"></span></h2>
       </div>
       <p style="color:var(--text-muted);font-size:13px">Selecciona las manzanas abarcadas</p>
     </div>
@@ -711,6 +728,14 @@
     <div class="toggle-row">
       <span>Todo el territorio</span>
       <div class="toggle" id="all-toggle" onclick="toggleAll()"></div>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <span>No abarcado</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Enviar sin manzanas seleccionadas</div>
+      </div>
+      <div class="toggle" id="none-toggle" onclick="toggleNone()"></div>
     </div>
 
     <div class="host-actions">
@@ -728,7 +753,6 @@
       Volver
     </div>
     <div class="confirm-summary">
-      <div class="territory-num-sm" id="confirm-num">5</div>
       <h3 id="confirm-title">Territorio 5 completado</h3>
       <p class="subtitle" id="confirm-subtitle">¿Quieres enviar tu reporte?</p>
       <div class="confirm-manzanas" id="confirm-manzanas-list"></div>
@@ -739,6 +763,17 @@
     </button>
   </div>
 
+  <!-- Step 3: Bonus territory picker -->
+  <div id="host-step-3" class="host-select hidden">
+    <div class="host-select-header" style="padding-top:8px">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px">¿Cuál territorio hiciste?</h2>
+      <p style="color:var(--text-muted);font-size:13px">Selecciona el territorio adicional</p>
+    </div>
+    <div id="host-bonus-list" style="display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1;padding-bottom:8px">
+      <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ════════════════════════════════════════
@@ -746,12 +781,18 @@
 ════════════════════════════════════════ -->
 <div id="territory-modal" class="modal-overlay hidden">
   <div class="modal">
-    <h2>Territorio <span id="tm-num"></span></h2>
-    <p>Configura las manzanas y sube el SVG del mapa</p>
+    <h2 id="tm-modal-title">Nuevo territorio</h2>
+    <p id="tm-modal-sub">Configura las manzanas y sube el SVG del mapa</p>
 
-    <div class="form-group">
-      <label>Nombre del territorio (opcional)</label>
-      <input type="text" id="tm-name" placeholder="Ej: Zona Norte">
+    <div style="display:grid;grid-template-columns:100px 1fr;gap:12px;margin-bottom:16px">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Número</label>
+        <input type="number" id="tm-num-input" placeholder="Ej: 37" min="1" style="text-align:center;font-family:'DM Serif Display',serif;font-size:20px;font-weight:bold">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Nombre del territorio (opcional)</label>
+        <input type="text" id="tm-name" placeholder="Ej: Zona Norte">
+      </div>
     </div>
 
     <div class="manzana-editor">
@@ -961,6 +1002,10 @@ function showPanel(name) {
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.panel === name);
   });
+  if (name === 'forms') { loadForms(); populateTerritorySelect(); }
+  if (name === 'territories') loadTerritories();
+  if (name === 'reports') loadReports();
+  if (name === 'dashboard') loadDashboard();
 }
 
 // ── DASHBOARD ──
@@ -1044,21 +1089,31 @@ async function loadForms() {
   const grid = document.getElementById('forms-grid');
   if (!forms.length) { grid.innerHTML = '<div class="empty-state"><h3>Sin formularios aún</h3><p>Crea el primero con "Nuevo formulario"</p></div>'; return; }
 
-  const rRes = await sb('territory_reports?select=form_id,territory_num', { method:'GET' });
+  const [rRes, terRes] = await Promise.all([
+    sb('territory_reports?select=form_id,territory_num,territory_id', { method:'GET' }),
+    sb('territories?select=id,number,name&order=number.asc', { method:'GET' })
+  ]);
   const reports = await rRes.json();
+  const terListRaw = await terRes.json();
+  const terList = Array.isArray(terListRaw) ? terListRaw : [];
 
-  // Map form_id → set of reported territory_nums
+  // Build territory lookup by id and number
+  const terById = {}, terByNum = {};
+  terList.forEach(t => { terById[t.id] = t; terByNum[t.number] = t; });
+
+  // Map form_id → set of reported slot keys (territory_id or territory_num)
   const reportedMap = {};
   reports.forEach(r => {
     if (!reportedMap[r.form_id]) reportedMap[r.form_id] = new Set();
-    reportedMap[r.form_id].add(r.territory_num);
+    reportedMap[r.form_id].add(r.territory_id || r.territory_num);
   });
 
   grid.innerHTML = forms.map(f => {
-    const nums = f.territory_nums || (f.territory_num ? [f.territory_num] : []);
+    // Slot keys: ids if available, else nums
+    const slotKeys = f.territory_ids || f.territory_nums || (f.territory_num ? [f.territory_num] : []);
     const reported = reportedMap[f.id] || new Set();
-    const allDone = nums.length > 0 && nums.every(n => reported.has(n));
-    const someReported = nums.some(n => reported.has(n));
+    const allDone = slotKeys.length > 0 && slotKeys.every(k => reported.has(k));
+    const someReported = slotKeys.some(k => reported.has(k));
     const statusBadge = allDone
       ? '<span class="badge badge-green">✓ Completado</span>'
       : someReported
@@ -1067,10 +1122,12 @@ async function loadForms() {
 
     const link = `${location.href.split('?')[0]}?token=${f.token}`;
 
-    // Territory badges row
-    const tBadges = nums.map(n => {
-      const done = reported.has(n);
-      return `<span class="badge ${done ? 'badge-green' : 'badge-dim'}" style="font-size:12px">T${n}${done ? ' ✓' : ''}</span>`;
+    // Territory badges — look up name by id or number
+    const tBadges = slotKeys.map(k => {
+      const done = reported.has(k);
+      const ter = terById[k] || terByNum[k];
+      const label = ter ? (ter.name ? `T${ter.number} – ${ter.name}` : `T${ter.number}`) : `T${k}`;
+      return `<span class="badge ${done ? 'badge-green' : 'badge-dim'}" style="font-size:12px">${label}${done ? ' ✓' : ''}</span>`;
     }).join('');
 
     return `
@@ -1114,9 +1171,8 @@ async function loadReports() {
   const forms = await formRes.json();
 
   const tMap = {};
-  if (Array.isArray(territories)) territories.forEach(t => tMap[t.number] = t);
+  if (Array.isArray(territories)) territories.forEach(t => { tMap[t.number] = t; tMap[t.id] = t; });
 
-  // Group reports by form_id
   const formMap = {};
   if (Array.isArray(forms)) forms.forEach(f => formMap[f.id] = f);
 
@@ -1136,48 +1192,63 @@ async function loadReports() {
 
   countEl.textContent = `${reports.length} reporte${reports.length !== 1 ? 's' : ''}`;
 
-  // Sort form groups by most recent report
-  const formGroups = Object.entries(byForm).sort((a, b) => {
-    const latestA = Math.max(...a[1].map(r => new Date(r.created_at)));
-    const latestB = Math.max(...b[1].map(r => new Date(r.created_at)));
-    return latestB - latestA;
+  const DAYS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function formatDayHeader(dateStr) {
+    if (!dateStr || dateStr === 'Sin fecha') return { long: 'Sin fecha', short: '–' };
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const dayName = DAYS_ES[date.getDay()];
+    return {
+      long: `${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, ${d} de ${MONTHS_ES[m-1]} ${y}`,
+      short: `${dayName.charAt(0).toUpperCase() + dayName.slice(1).slice(0,2)}. ${d}/${m}`,
+      isSaturday: date.getDay() === 6
+    };
+  }
+
+  // Group by assignment_date
+  const byDate = {};
+  Object.entries(byForm).forEach(([formId, reps]) => {
+    const form = formMap[formId];
+    const dk = form?.assignment_date || 'Sin fecha';
+    if (!byDate[dk]) byDate[dk] = [];
+    byDate[dk].push([formId, reps]);
   });
 
-  container.innerHTML = formGroups.map(([formId, reps]) => {
-    const form = formMap[formId];
+  const sortedDates = Object.keys(byDate).sort((a, b) => {
+    if (a === 'Sin fecha') return 1;
+    if (b === 'Sin fecha') return -1;
+    return b.localeCompare(a);
+  });
+
+  // Build card HTML for one report group
+  function buildReportCard(formId, reps) {
     const hostName = reps[0].host_name;
-    const latestDate = reps.reduce((a, b) => a.created_at > b.created_at ? a : b).created_at;
-
-    // Sort: assigned first, extras last
-    const assignedNums = new Set(form?.territory_nums || (form?.territory_num ? [form.territory_num] : []));
-    const sortedReps = [...reps].sort((a, b) => {
-      const aExtra = !assignedNums.has(a.territory_num);
-      const bExtra = !assignedNums.has(b.territory_num);
-      return aExtra - bExtra;
-    });
-
-    // Build side-by-side maps
-    const mapsHtml = sortedReps.map(r => {
-      const isExtra = !assignedNums.has(r.territory_num);
-      const t = tMap[r.territory_num];
-      const coverage = r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    const mapsHtml = reps.map(r => {
+      const t = tMap[r.territory_id] || tMap[r.territory_num];
+      const isNone = r.not_covered;
+      const coverage = isNone ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
       const doneManzanas = new Set((r.manzanas_done||[]).map(m => m.toLowerCase()));
+      const tNum = t?.number ?? r.territory_num;
+      const tName = t?.name || `Territorio ${tNum}`;
       const svgHtml = t?.svg_data
         ? buildPreviewSvg(t.svg_data, t.manzanas||[], doneManzanas, r.all_territory)
         : renderReportTiles(t?.manzanas||[], doneManzanas, r.all_territory);
       return `
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div style="width:28px;height:28px;background:${isExtra ? 'var(--surface2)' : 'var(--gold)'};border-radius:8px;border:${isExtra ? '1px solid var(--border)' : 'none'};display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:13px;color:${isExtra ? 'var(--text-muted)' : '#0f0f0f'}">${r.territory_num}</div>
-          ${isExtra ? '<span class="badge badge-dim" style="font-size:9px;padding:2px 6px">Extra</span>' : ''}
-        </div>
-        <div style="width:100%;display:flex;align-items:center;justify-content:center;min-height:120px">${svgHtml}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-align:center">${tName}</div>
+        <div style="width:100%;display:flex;align-items:center;justify-content:center;min-height:120px;opacity:${isNone?'0.35':'1'}">${svgHtml}</div>
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:12px;font-weight:600;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span>
-          <span class="progress-bar" style="width:48px"><span class="progress-fill" style="width:${coverage}%;background:${coverage===100?'var(--green)':'var(--gold)'}"></span></span>
+          ${isNone
+            ? '<span class="badge badge-dim" style="font-size:10px">No abarcado</span>'
+            : `<span style="font-size:12px;font-weight:600;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span>
+               <span class="progress-bar" style="width:48px"><span class="progress-fill" style="width:${coverage}%;background:${coverage===100?'var(--green)':'var(--gold)'}"></span></span>`}
         </div>
         <div style="font-size:11px;color:var(--text-muted);text-align:center">
-          ${r.all_territory ? '<span class="badge badge-green" style="font-size:10px">Completo</span>' : (r.manzanas_done||[]).map(m=>`<span class="badge badge-gold" style="font-size:10px">${m}</span>`).join(' ')}
+          ${r.all_territory ? '<span class="badge badge-green" style="font-size:10px">Completo</span>'
+            : isNone ? ''
+            : (r.manzanas_done||[]).map(m=>`<span class="badge badge-gold" style="font-size:10px">${m}</span>`).join(' ')}
         </div>
         <button onclick="deleteReport('${r.id}')" title="Eliminar"
           style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text-dim);padding:3px 10px;font-size:11px;transition:all .15s"
@@ -1187,21 +1258,85 @@ async function loadReports() {
     }).join(`<div style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></div>`);
 
     return `
-    <div class="report-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div class="report-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s;min-width:260px"
+      onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-weight:600;font-size:14px">${hostName}</div>
-          <div style="font-size:11px;color:var(--text-muted)">${formatDate(latestDate)}</div>
-        </div>
+        <div style="font-weight:600;font-size:14px">${hostName}</div>
         <span class="badge badge-green" style="font-size:11px">✓ Enviado</span>
       </div>
       <div style="padding:16px;background:var(--surface2);display:flex;gap:8px;align-items:flex-start">
         ${mapsHtml}
       </div>
     </div>`;
-  }).join('');
+  }
+
+  // ── Render: horizontal calendar strip ──
+  // Each date = one column. Saturday is collapsible (starts collapsed).
+  container.style.display = 'block';
+
+  container.innerHTML = `
+  <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:8px;align-items:flex-start">
+    ${sortedDates.map((dk, i) => {
+      const { long, isSaturday } = formatDayHeader(dk);
+      const groups = byDate[dk].sort((a, b) =>
+        (formMap[a[0]]?.host_name||'').toLowerCase().localeCompare((formMap[b[0]]?.host_name||'').toLowerCase())
+      );
+      const colId = `col-${i}`;
+      const startCollapsed = isSaturday;
+      const count = groups.length;
+
+      const cardsHtml = groups.map(([fid, reps]) => buildReportCard(fid, reps)).join('');
+
+      return `
+      <div style="flex:0 0 auto;width:320px;border-right:1px solid var(--border);padding:0 20px 20px;${i===0?'padding-left:0':''}">
+
+        <!-- Day header — clickable for Saturday -->
+        <div onclick="${isSaturday ? `toggleReportCol('${colId}')` : ''}"
+          style="position:sticky;top:0;z-index:10;background:var(--bg);padding:0 0 16px;margin-bottom:4px;
+            ${isSaturday ? 'cursor:pointer;user-select:none;' : ''}">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-top:2px">
+            <div>
+              <div style="font-family:'DM Serif Display',serif;font-size:17px;line-height:1.2">${long}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${count} reporte${count!==1?'s':''}</div>
+            </div>
+            ${isSaturday ? `
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              <span class="badge badge-gold" style="font-size:10px">Sábado</span>
+              <svg id="${colId}-chevron" width="14" height="14" fill="none" stroke="var(--text-muted)" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
+                style="transition:transform .22s;transform:rotate(${startCollapsed?'-90':'0'}deg)">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>` : ''}
+          </div>
+          <div style="height:1px;background:var(--border);margin-top:12px"></div>
+        </div>
+
+        <!-- Cards -->
+        <div id="${colId}" style="display:flex;flex-direction:column;gap:12px;${startCollapsed?'display:none':''}" >
+          ${cardsHtml}
+        </div>
+
+        ${startCollapsed ? `<div id="${colId}-placeholder" style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px 0">
+          Toca para ver ${count} reporte${count!==1?'s':''}
+        </div>` : ''}
+
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
+function toggleReportCol(id) {
+  const col = document.getElementById(id);
+  const chevron = document.getElementById(id + '-chevron');
+  const placeholder = document.getElementById(id + '-placeholder');
+  const isHidden = col.style.display === 'none';
+  col.style.display = isHidden ? 'flex' : 'none';
+  col.style.flexDirection = 'column';
+  col.style.gap = '12px';
+  if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+  if (placeholder) placeholder.style.display = isHidden ? 'none' : 'block';
+}
 
 
 function renderReportTiles(allManzanas, doneManzanas, allDone) {
@@ -1232,22 +1367,76 @@ async function deleteReport(id) {
 }
 
 // ── TERRITORIES PANEL ──
+let territoryFilterMode = 'number';
+
+function setTerritoryFilter(mode) {
+  territoryFilterMode = mode;
+  document.getElementById('filter-btn-number').style.background = mode === 'number' ? 'var(--gold)' : 'transparent';
+  document.getElementById('filter-btn-number').style.color = mode === 'number' ? '#0f0f0f' : 'var(--text-muted)';
+  document.getElementById('filter-btn-frequency').style.background = mode === 'frequency' ? 'var(--gold)' : 'transparent';
+  document.getElementById('filter-btn-frequency').style.color = mode === 'frequency' ? '#0f0f0f' : 'var(--text-muted)';
+  loadTerritories();
+}
+
 async function loadTerritories() {
   const res = await sb('territories?select=*&order=number.asc', { method:'GET' });
   let territories = await res.json();
   if (!Array.isArray(territories)) territories = [];
 
-  // build map
-  const tMap = {};
-  territories.forEach(t => tMap[t.number] = t);
+  const sub = document.getElementById('territories-subtitle');
+  if (sub) sub.textContent = `${territories.length} territorio${territories.length !== 1 ? 's' : ''} configurado${territories.length !== 1 ? 's' : ''}`;
+
+  // For frequency mode: fetch all reports to compute last-worked date per territory
+  let lastWorkedMap = {}; // territory id → latest assignment_date
+  if (territoryFilterMode === 'frequency') {
+    const [repRes, formRes] = await Promise.all([
+      sb('territory_reports?select=territory_id,territory_num,form_id', { method:'GET' }),
+      sb('territory_forms?select=id,assignment_date', { method:'GET' })
+    ]);
+    const repData = await repRes.json();
+    const formData = await formRes.json();
+    const formDateMap = {};
+    if (Array.isArray(formData)) formData.forEach(f => formDateMap[f.id] = f.assignment_date);
+    if (Array.isArray(repData)) {
+      repData.forEach(r => {
+        const assignDate = formDateMap[r.form_id] || null;
+        if (!assignDate) return;
+        const key = r.territory_id || String(r.territory_num);
+        if (!lastWorkedMap[key] || assignDate > lastWorkedMap[key]) lastWorkedMap[key] = assignDate;
+      });
+    }
+  }
+
+  // Sort territories
+  if (territoryFilterMode === 'frequency') {
+    territories.sort((a, b) => {
+      const ka = a.id || String(a.number);
+      const kb = b.id || String(b.number);
+      const da = lastWorkedMap[ka] || '0000-00-00';
+      const db = lastWorkedMap[kb] || '0000-00-00';
+      if (da !== db) return da.localeCompare(db); // never-worked first, then oldest
+      return a.number - b.number;
+    });
+  } else {
+    territories.sort((a, b) => a.number - b.number);
+  }
 
   const grid = document.getElementById('territories-grid');
-  grid.innerHTML = Array.from({length:36}, (_,i) => i+1).map(n => {
-    const t = tMap[n];
+
+  if (!territories.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      <h3>Sin territorios</h3>
+      <p>Haz clic en "Añadir territorio" para crear el primero.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = territories.map(t => {
+    const n = t.number;
     const mcount = t?.manzanas?.length || 0;
     const hasSvg = !!t?.svg_data;
 
-    // Build a neutral-colored SVG preview (all manzanas in gold, no selection state)
     let svgPreview = '';
     if (hasSvg) {
       const parser = new DOMParser();
@@ -1258,46 +1447,48 @@ async function loadTerritories() {
         svg.removeAttribute('height');
         svg.style.width = '100%';
         svg.style.height = '100%';
-        // Style all fill paths with gold, labels white — no interactivity
-        const manzanaSet = new Set((t.manzanas||[]).map(m => m.toLowerCase()));
-        // Keep original SVG colors — don't override fills at all
-        // Just ensure no stale fill-opacity
-        svg.querySelectorAll('path, polygon').forEach(el => {
-          el.removeAttribute('fill-opacity');
-        });
+        svg.querySelectorAll('path, polygon').forEach(el => el.removeAttribute('fill-opacity'));
         svg.style.pointerEvents = 'none';
         svgPreview = new XMLSerializer().serializeToString(svg);
       }
     }
 
+    const tIdx = territories.indexOf(t);
+    const isPriority = territoryFilterMode === 'frequency' && tIdx < 5;
+    const ka = t.id || String(n);
+    const lastDate = lastWorkedMap[ka];
+    const lastLabel = lastDate
+      ? (() => { const [y,mo,d] = lastDate.split('-').map(Number); return `Último: ${d}/${mo}/${y}`; })()
+      : 'Nunca trabajado';
+
     return `
-    <div class="form-card" style="cursor:pointer" onclick="openTerritoryModal(${n})">
-      <!-- Card header -->
+    <div class="form-card" style="${isPriority ? 'border-color:var(--gold);' : ''}">
       <div class="form-card-header">
-        <div class="form-card-num">${n}</div>
-        ${hasSvg ? '<span class="badge badge-green">SVG</span>' : '<span class="badge badge-dim">Sin SVG</span>'}
+        <div class="form-card-num" style="${isPriority ? 'background:var(--gold);' : ''}">${n}</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${isPriority ? '<span class="badge badge-gold" style="font-size:10px">⬆ Prioridad</span>' : ''}
+          ${hasSvg ? '<span class="badge badge-green">SVG</span>' : '<span class="badge badge-dim">Sin SVG</span>'}
+        </div>
       </div>
       <h3 style="margin-bottom:4px">${t?.name || `Territorio ${n}`}</h3>
+      ${territoryFilterMode === 'frequency' ? `<p style="font-size:11px;color:${lastDate ? 'var(--text-muted)' : 'var(--red)'};margin-bottom:4px">${lastLabel}</p>` : ''}
       <p>${mcount ? `${mcount} manzana${mcount!==1?'s':''}: ${(t.manzanas||[]).join(', ')}` : 'Sin manzanas configuradas'}</p>
 
-      <!-- SVG preview -->
       ${hasSvg ? `
-      <div style="
-        margin: 14px 0;
-        background: #ffffff;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        padding: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 130px;
-        overflow: hidden;
-      ">${svgPreview}</div>` : '<div style="margin:14px 0 10px"></div>'}
+      <div style="margin:14px 0;background:#ffffff;border-radius:10px;border:1px solid var(--border);
+        padding:12px;display:flex;align-items:center;justify-content:center;min-height:130px;overflow:hidden">
+        ${svgPreview}
+      </div>` : '<div style="margin:14px 0 10px"></div>'}
 
-      <!-- Actions -->
       <div class="form-card-actions">
-        <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px">Editar</button>
+        <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="openTerritoryModal('${t.id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn btn-danger" style="font-size:12px;padding:6px 14px;background:transparent;color:var(--red);border:1px solid var(--red)" onclick="deleteTerritory('${t.id}', ${n})">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Eliminar
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -1310,28 +1501,46 @@ let currentSvgData = null;
 let currentTerritoryId = null;
 
 async function openTerritoryModal(num) {
-  hostCurrentTerritory = num;
+  // num = null → new territory; num = integer → edit existing
+  const isNew = num === null;
+  currentTerritoryNum = num;
   currentManzanas = [];
   currentSvgData = null;
   currentTerritoryId = null;
 
-  document.getElementById('tm-num').textContent = num;
+  // Modal title & subtitle
+  document.getElementById('tm-modal-title').textContent = isNew ? 'Nuevo territorio' : `Territorio ${num}`;
+  document.getElementById('tm-modal-sub').textContent = isNew
+    ? 'Completa los datos del nuevo territorio'
+    : 'Edita la información de este territorio';
+
+  // Number input — editable only when creating new
+  const numInput = document.getElementById('tm-num-input');
+  numInput.value = isNew ? '' : num;
+  numInput.disabled = !isNew;
+  numInput.style.opacity = isNew ? '1' : '0.5';
+
   document.getElementById('tm-name').value = '';
   document.getElementById('tm-chips').innerHTML = '';
   document.getElementById('tm-new-manzana').value = '';
   document.getElementById('svg-preview-wrap').classList.add('hidden');
   document.getElementById('svg-drop').classList.remove('hidden');
 
-  // load existing
-  const res = await sb(`territories?number=eq.${num}&select=*`, { method:'GET' });
-  const arr = await res.json();
-  if (arr.length) {
-    const t = arr[0];
-    currentTerritoryId = t.id;
-    currentManzanas = t.manzanas || [];
-    currentSvgData = t.svg_data || null;
-    document.getElementById('tm-name').value = t.name || '';
-    if (currentSvgData) showSvgPreview(currentSvgData);
+  if (!isNew) {
+    // num is actually the territory id when editing
+    const res = await sb(`territories?id=eq.${num}&select=*`, { method:'GET' });
+    const arr = await res.json();
+    if (arr.length) {
+      const t = arr[0];
+      currentTerritoryNum = t.number;
+      currentTerritoryId = t.id;
+      currentManzanas = t.manzanas || [];
+      currentSvgData = t.svg_data || null;
+      document.getElementById('tm-modal-title').textContent = `Territorio ${t.number}`;
+      document.getElementById('tm-num-input').value = t.number;
+      document.getElementById('tm-name').value = t.name || '';
+      if (currentSvgData) showSvgPreview(currentSvgData);
+    }
   }
   renderChips();
   document.getElementById('territory-modal').classList.remove('hidden');
@@ -1399,7 +1608,17 @@ function clearSvg() {
 
 async function saveTerritory() {
   const name = document.getElementById('tm-name').value.trim();
-  const payload = { number: currentTerritoryNum, name, manzanas: currentManzanas, svg_data: currentSvgData };
+  const numInput = document.getElementById('tm-num-input');
+  const num = currentTerritoryId ? currentTerritoryNum : parseInt(numInput.value);
+
+  if (!num || isNaN(num) || num < 1) {
+    toast('Ingresa un número de territorio válido', 'error');
+    numInput.focus();
+    return;
+  }
+  // Duplicate numbers are allowed — different territories can share the same number
+
+  const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData };
 
   try {
     if (currentTerritoryId) {
@@ -1416,16 +1635,33 @@ async function saveTerritory() {
   }
 }
 
+async function deleteTerritory(id, num) {
+  if (!confirm(`¿Eliminar el Territorio ${num}? Esta acción no se puede deshacer.`)) return;
+  try {
+    await sb(`territories?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+    toast(`Territorio ${num} eliminado`);
+    loadTerritories();
+    populateTerritorySelect();
+  } catch(err) {
+    toast('Error al eliminar', 'error');
+  }
+}
 // ── CREATE FORM ──
 async function populateTerritorySelect() {
+  const res = await sb(`territories?select=id,number,name&order=number.asc`, { method:'GET', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
+  let territories = await res.json();
+  if (!Array.isArray(territories)) territories = [];
+
   for (let slot = 1; slot <= 3; slot++) {
     const sel = document.getElementById(`cf-territory-${slot}`);
     if (!sel) continue;
     const isRequired = slot === 1;
     sel.innerHTML = `<option value="">${isRequired ? 'Seleccionar territorio...' : 'Opcional'}</option>`;
-    for (let i = 1; i <= 36; i++) {
-      sel.innerHTML += `<option value="${i}">Territorio ${i}</option>`;
-    }
+    territories.forEach(t => {
+      const label = t.name ? `T${t.number} – ${t.name}` : `Territorio ${t.number}`;
+      // value = "id:number" so we can recover both
+      sel.innerHTML += `<option value="${t.id}:${t.number}">${label}</option>`;
+    });
   }
 }
 
@@ -1437,19 +1673,25 @@ async function createForm() {
   const t2 = document.getElementById('cf-territory-2').value;
   const t3 = document.getElementById('cf-territory-3').value;
 
-  const territories = [t1, t2, t3].filter(Boolean).map(Number);
-  if (!host || !date || !territories.length) { toast('Completa los campos obligatorios y selecciona al menos un territorio', 'error'); return; }
+  // Parse "id:number" pairs from select values
+  const tPairs = [t1, t2, t3].filter(Boolean).map(v => {
+    const [id, num] = v.split(':');
+    return { id, number: Number(num) };
+  });
+  if (!host || !date || !tPairs.length) { toast('Completa los campos obligatorios y selecciona al menos un territorio', 'error'); return; }
 
-  // Check for duplicates
-  if (new Set(territories).size !== territories.length) { toast('No puedes asignar el mismo territorio dos veces', 'error'); return; }
+  // Check for duplicates by id
+  const tIds = tPairs.map(p => p.id);
+  if (new Set(tIds).size !== tIds.length) { toast('No puedes asignar el mismo territorio dos veces', 'error'); return; }
 
   const btn = document.getElementById('btn-create-form');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Generando...';
 
   const token = genToken();
-  // territory_num (singular) kept for backward compat; territory_nums is the new array
-  const payload = { host_name: host, territory_num: territories[0], territory_nums: territories, assignment_date: date, notes: notes || null, token };
+  const tNums = tPairs.map(p => p.number);
+  // territory_ids = array of UUIDs (new); territory_nums = array of numbers (compat); territory_num = first number (legacy)
+  const payload = { host_name: host, territory_num: tNums[0], territory_nums: tNums, territory_ids: tIds, assignment_date: date, notes: notes || null, token };
 
   try {
     const res = await sb('territory_forms', { method:'POST', body: JSON.stringify(payload), prefer: 'return=representation' });
@@ -1511,6 +1753,7 @@ let hostReportedNums = new Set(); // territory_nums already reported in this ses
 let hostCurrentTerritory = null; // which territory is being reported right now
 let selectedManzanas = [];
 let allSelected = false;
+let noneSelected = false;
 
 async function initHostScreen(token) {
   const fRes = await sb(`territory_forms?token=eq.${token}&select=*`, { method:'GET' });
@@ -1521,19 +1764,31 @@ async function initHostScreen(token) {
   }
   hostFormData = forms[0];
 
-  // Support both old (territory_num) and new (territory_nums) schema
+  // Support territory_ids (new, by UUID), territory_nums (by number), territory_num (legacy)
+  const ids = hostFormData.territory_ids || [];
   const nums = hostFormData.territory_nums || (hostFormData.territory_num ? [hostFormData.territory_num] : []);
 
   // Load already-submitted reports for this form
-  const rRes = await sb(`territory_reports?form_id=eq.${hostFormData.id}&select=territory_num`, { method:'GET' });
+  const rRes = await sb(`territory_reports?form_id=eq.${hostFormData.id}&select=territory_num,territory_id`, { method:'GET' });
   const existing = await rRes.json();
-  hostReportedNums = new Set(existing.map(r => r.territory_num));
+  // hostReportedNums tracks the "slot key" — id if available, else number
+  hostReportedNums = new Set(existing.map(r => r.territory_id || r.territory_num));
 
-  // Load territory configs for all assigned nums
-  if (nums.length) {
+  // Load territory configs — by id if we have them, else by number
+  if (ids.length) {
+    const tRes = await sb(`territories?id=in.(${ids.join(',')})&select=*`, { method:'GET' });
+    const tArr = await tRes.json();
+    // key by id so slots are unambiguous even when numbers repeat
+    tArr.forEach(t => hostTerritoriesData[t.id] = t);
+    // also expose by number for legacy paths, last-write-wins (acceptable)
+    tArr.forEach(t => { if (!hostTerritoriesData[t.number]) hostTerritoriesData[t.number] = t; });
+    // rewrite hostFormData.territory_nums to use ids as slot keys for the host flow
+    hostFormData._slotKeys = ids;
+  } else if (nums.length) {
     const tRes = await sb(`territories?number=in.(${nums.join(',')})&select=*`, { method:'GET' });
     const tArr = await tRes.json();
     tArr.forEach(t => hostTerritoriesData[t.number] = t);
+    hostFormData._slotKeys = nums;
   }
 
   document.getElementById('host-name-display').textContent = hostFormData.host_name;
@@ -1542,7 +1797,7 @@ async function initHostScreen(token) {
 }
 
 function renderHostOverview() {
-  const nums = hostFormData.territory_nums || (hostFormData.territory_num ? [hostFormData.territory_num] : []);
+  const nums = hostFormData._slotKeys || hostFormData.territory_nums || (hostFormData.territory_num ? [hostFormData.territory_num] : []);
   const pending = nums.filter(n => !hostReportedNums.has(n));
   const allDone = pending.length === 0;
 
@@ -1551,7 +1806,7 @@ function renderHostOverview() {
   const allDoneEl = document.getElementById('host-all-done');
 
   // Show all steps hidden, step-0 visible
-  [1,2].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
+  [1,2,3].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
   document.getElementById('host-step-0').classList.remove('hidden');
 
   if (allDone) {
@@ -1561,11 +1816,41 @@ function renderHostOverview() {
     return;
   }
 
-  // Single territory: skip overview, go straight to the map
+  // Single territory: show welcome splash with "Comenzar" button
   if (nums.length === 1) {
-    startReporting(nums[0]);
+    const n = nums[0];
+    allDoneEl.classList.add('hidden');
+    sub.classList.add('hidden');
+    // Hide the default h1 heading so we can render the full splash inside cardsEl
+    const defaultHeading = document.querySelector('.host-welcome-name');
+    if (defaultHeading) defaultHeading.classList.add('hidden');
+    const tSingle = hostTerritoriesData[n] || {};
+    const dispNumSingle = tSingle.number ?? n;
+    const dispNameSingle = tSingle.name || `Territorio ${dispNumSingle}`;
+    cardsEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;width:100%">
+        <div style="width:100px;height:100px;background:var(--gold);border-radius:28px;
+          display:flex;align-items:center;justify-content:center;
+          font-family:'DM Serif Display',serif;font-size:48px;color:#0f0f0f;
+          margin-bottom:32px;box-shadow:0 20px 60px rgba(232,184,75,0.3);">${dispNumSingle}</div>
+        <h1 style="font-family:'DM Serif Display',serif;font-size:32px;margin-bottom:8px">
+          ¡Hola, <span style="color:var(--gold);font-style:italic">${hostFormData.host_name}</span>!
+        </h1>
+        <p style="color:var(--text-muted);font-size:15px;margin-bottom:36px;line-height:1.5">
+          Envía tu informe del territorio<br>de hoy.
+        </p>
+        <button class="btn btn-gold" onclick="startReporting('${n}')"
+          style="padding:15px 40px;font-size:15px">
+          Comenzar
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>`;
     return;
   }
+
+  // Multi-territory: restore the default heading if it was hidden
+  const defaultHeading = document.querySelector('.host-welcome-name');
+  if (defaultHeading) defaultHeading.classList.remove('hidden');
 
   allDoneEl.classList.add('hidden');
   sub.classList.remove('hidden');
@@ -1576,10 +1861,12 @@ function renderHostOverview() {
   cardsEl.innerHTML = nums.map(n => {
     const done = hostReportedNums.has(n);
     const t = hostTerritoriesData[n];
+    const dispNum = t?.number ?? n;
+    const dispName = t?.name || `Territorio ${dispNum}`;
     const svgHtml = t?.svg_data ? buildPreviewSvg(t.svg_data, t.manzanas || [], new Set(), false, true) : '';
 
     return `
-    <div onclick="${done ? '' : `startReporting(${n})`}"
+    <div onclick="${done ? '' : `startReporting('${n}')`}"
       style="
         background:var(--surface);border:1px solid ${done ? 'var(--green)' : 'var(--border)'};
         border-radius:var(--radius);overflow:hidden;
@@ -1591,8 +1878,8 @@ function renderHostOverview() {
       <!-- Card header -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:34px;height:34px;background:${done ? 'var(--green)' : 'var(--gold)'};border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:#0f0f0f;flex-shrink:0">${n}</div>
-          <span style="font-weight:600;font-size:15px">Territorio ${n}</span>
+          <div style="width:34px;height:34px;background:${done ? 'var(--green)' : 'var(--gold)'};border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:#0f0f0f;flex-shrink:0">${dispNum}</div>
+          <span style="font-weight:600;font-size:15px">${dispName}</span>
         </div>
         ${done
           ? '<span class="badge badge-green" style="font-size:11px">✓ Enviado</span>'
@@ -1649,47 +1936,212 @@ function buildPreviewSvg(svgData, allManzanas, doneManzanas, allDone, neutralMod
   return new XMLSerializer().serializeToString(svg);
 }
 
+// Extract the dominant fill color from a territory's SVG data
+function extractTerritoryColor(t) {
+  if (!t?.svg_data) return '#e8b84b'; // fallback gold
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(t.svg_data, 'image/svg+xml');
+    const svg = doc.querySelector('svg');
+    if (!svg) return '#e8b84b';
+    const manzanas = t.manzanas || [];
+    const manzanaSet = new Set(manzanas.map(m => m.toLowerCase()));
+
+    // Try to find a manzana fill element (same logic as renderTerritoryMap)
+    let fillEl = null;
+    svg.querySelectorAll('g[id]').forEach(g => {
+      if (fillEl) return;
+      if (manzanaSet.has(g.getAttribute('id').toLowerCase())) {
+        fillEl = g.querySelector('[id$="_2"]') || g.querySelector('path, polygon');
+      }
+    });
+    if (!fillEl) {
+      svg.querySelectorAll('path[id], polygon[id]').forEach(el => {
+        if (fillEl) return;
+        const elId = el.getAttribute('id').toLowerCase();
+        if ([...manzanaSet].some(m => elId === m || elId.startsWith(m + '_') || elId.startsWith(m + '-'))) {
+          fillEl = el;
+        }
+      });
+    }
+    if (!fillEl) fillEl = svg.querySelector('path, polygon');
+    const fill = fillEl?.getAttribute('fill');
+    return (fill && fill !== 'none' && fill !== 'transparent') ? fill : '#e8b84b';
+  } catch (e) { return '#e8b84b'; }
+}
+
+function applyTerritoryColor(num) {
+  const t = hostTerritoriesData[num];  // num is slotKey (id or number)
+  const color = extractTerritoryColor(t);
+
+  // Apply to Continue button (step 1)
+  const btnContinue = document.getElementById('btn-continue');
+  if (btnContinue) { btnContinue.style.background = color; btnContinue.style.color = '#0f0f0f'; }
+
+  // Apply to Submit button (step 2)
+  const btnSubmit = document.getElementById('btn-submit');
+  if (btnSubmit) { btnSubmit.style.background = color; btnSubmit.style.color = '#0f0f0f'; }
+}
+
 function startReporting(num) {
   hostCurrentTerritory = num;
   selectedManzanas = [];
   allSelected = false;
 
-  const t = hostTerritoriesData[num] || { number: num, manzanas: [], svg_data: null };
+  const nums = hostFormData?._slotKeys || hostFormData?.territory_nums || (hostFormData?.territory_num ? [hostFormData.territory_num] : []);
+  const t = hostTerritoriesData[num] || { manzanas: [], svg_data: null };
 
-  document.getElementById('host-sel-num').textContent = num;
-  document.getElementById('host-sel-territory').textContent = num;
+  document.getElementById('host-sel-territory').textContent = t?.number ?? num;
 
   document.getElementById('host-step-0').classList.add('hidden');
   document.getElementById('host-step-1').classList.remove('hidden');
   document.getElementById('host-step-2').classList.add('hidden');
 
+  // Show back button only for multi-territory links
+  const backBtn = document.getElementById('host-back-btn');
+  if (backBtn) backBtn.classList.toggle('hidden', nums.length <= 1);
+
   document.getElementById('all-toggle').classList.remove('on');
+  document.getElementById('none-toggle').classList.remove('on');
+  noneSelected = false;
+  applyTerritoryColor(num);
   renderTerritoryMap(t);
   updateContinueBtn();
 }
 
 function hostStep(step) {
-  [0,1,2,4].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
-  const nums = hostFormData?.territory_nums || (hostFormData?.territory_num ? [hostFormData.territory_num] : []);
+  [0,1,2,3].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
+
+  // Back button: visible on steps 1 & 2 for multi-territory, and on step 3 always (goes to all-done)
+  const nums = hostFormData?._slotKeys || hostFormData?.territory_nums || (hostFormData?.territory_num ? [hostFormData.territory_num] : []);
   const backBtn = document.getElementById('host-back-btn');
-  // Show back btn on step 1 (only if multi-territory) and on step 4 (extra picker)
-  const showBack = (step === 1 && nums.length > 1) || step === 4;
+  const isMulti = nums.length > 1;
   if (backBtn) {
-    backBtn.classList.toggle('hidden', !showBack);
-    // On step 4, back goes to all-done screen; on step 1 back goes to overview
-    backBtn.onclick = step === 4 ? showAllDone : () => hostStep(0);
+    if (step === 3) {
+      backBtn.classList.remove('hidden');
+      backBtn.onclick = () => hostStep(0);
+    } else if ((step === 1 || step === 2) && isMulti) {
+      backBtn.classList.remove('hidden');
+      backBtn.onclick = step === 1 ? () => hostStep(0) : () => hostStep(1);
+    } else {
+      backBtn.classList.add('hidden');
+    }
   }
 
   if (step === 0) {
     renderHostOverview();
   } else if (step === 1) {
     document.getElementById('host-step-1').classList.remove('hidden');
+    applyTerritoryColor(hostCurrentTerritory);
   } else if (step === 2) {
     document.getElementById('host-step-2').classList.remove('hidden');
+    applyTerritoryColor(hostCurrentTerritory);
     renderConfirmStep();
-  } else if (step === 4) {
-    document.getElementById('host-step-4').classList.remove('hidden');
+  } else if (step === 3) {
+    document.getElementById('host-step-3').classList.remove('hidden');
+    loadBonusTerritoryList();
   }
+}
+
+async function loadBonusTerritoryList() {
+  const listEl = document.getElementById('host-bonus-list');
+  listEl.innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div></div>';
+
+  const res = await sb('territories?select=*&order=number.asc', { method:'GET' });
+  let all = await res.json();
+  if (!Array.isArray(all)) all = [];
+
+  // Exclude already-reported territories this session
+  const available = all.filter(t => !hostReportedNums.has(t.id) && !hostReportedNums.has(t.number));
+
+  if (!available.length) {
+    listEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px">
+      Ya reportaste todos los territorios disponibles. ¡Increíble!
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML = available.map(t => {
+    const color = extractTerritoryColor(t);
+    const mcount = t.manzanas?.length || 0;
+
+    // Small SVG preview if available
+    let svgThumb = '';
+    if (t.svg_data) {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(t.svg_data, 'image/svg+xml');
+        const svg = doc.querySelector('svg');
+        if (svg) {
+          svg.removeAttribute('width'); svg.removeAttribute('height');
+          svg.style.width = '56px'; svg.style.height = '56px';
+          svg.style.pointerEvents = 'none'; svg.style.flexShrink = '0';
+          svg.querySelectorAll('path,polygon').forEach(el => el.removeAttribute('fill-opacity'));
+          svgThumb = new XMLSerializer().serializeToString(svg);
+        }
+      } catch(e) {}
+    }
+
+    return `
+    <div onclick="startBonusReporting('${t.id}', ${t.number})"
+      style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .15s,transform .12s;
+        -webkit-tap-highlight-color:transparent"
+      onmouseover="this.style.borderColor='${color}';this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
+      <div style="width:44px;height:44px;background:${color};border-radius:12px;display:flex;align-items:center;
+        justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;color:#0f0f0f;flex-shrink:0">
+        ${t.number}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:14px;margin-bottom:2px">${t.name || `Territorio ${t.number}`}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${mcount ? `${mcount} manzana${mcount!==1?'s':''}` : 'Sin manzanas'}</div>
+      </div>
+      ${svgThumb ? `<div style="opacity:0.7;flex-shrink:0">${svgThumb}</div>` : ''}
+      <svg width="14" height="14" fill="none" stroke="var(--text-dim)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </div>`;
+  }).join('');
+}
+
+function startBonusReporting(id, num) {
+  // Register this territory in hostTerritoriesData if not already there
+  // It will be populated when renderTerritoryMap calls it — but we need to fetch it first
+  const existing = hostTerritoriesData[id] || hostTerritoriesData[num];
+  if (existing) {
+    _doStartBonus(existing);
+  } else {
+    sb(`territories?id=eq.${id}&select=*`, { method:'GET' })
+      .then(r => r.json())
+      .then(arr => {
+        if (arr.length) { hostTerritoriesData[arr[0].id] = arr[0]; hostTerritoriesData[arr[0].number] = arr[0]; }
+        _doStartBonus(arr[0] || { id, number: num, manzanas: [], svg_data: null });
+      });
+  }
+}
+
+function _doStartBonus(t) {
+  const slotKey = t.id || t.number;
+  hostCurrentTerritory = slotKey;
+  selectedManzanas = [];
+  allSelected = false;
+  noneSelected = false;
+
+  document.getElementById('host-sel-territory').textContent = t.number;
+  document.getElementById('all-toggle').classList.remove('on');
+  document.getElementById('none-toggle').classList.remove('on');
+
+  [0,2,3].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
+  document.getElementById('host-step-1').classList.remove('hidden');
+
+  // Back button goes back to territory picker
+  const backBtn = document.getElementById('host-back-btn');
+  if (backBtn) { backBtn.classList.remove('hidden'); backBtn.onclick = () => hostStep(3); }
+
+  applyTerritoryColor(slotKey);
+  renderTerritoryMap(t);
+  updateContinueBtn();
 }
 
 function renderTerritoryMap(t) {
@@ -1743,6 +2195,7 @@ function renderTerritoryMap(t) {
 
     const onTap = (e) => {
       e.preventDefault(); e.stopPropagation();
+      noneSelected = false; document.getElementById('none-toggle').classList.remove('on');
       if (selectedManzanas.includes(mName)) {
         selectedManzanas = selectedManzanas.filter(x => x !== mName);
         fillEl.setAttribute('fill', originalFill);
@@ -1783,6 +2236,7 @@ function renderFallbackMap(container, manzanas) {
 }
 
 function toggleManzanaTile(el, mName) {
+  noneSelected = false; document.getElementById('none-toggle').classList.remove('on');
   if (selectedManzanas.includes(mName)) {
     selectedManzanas = selectedManzanas.filter(x => x !== mName);
     el.style.background = 'var(--gold-dim)'; el.style.borderColor = 'transparent';
@@ -1807,6 +2261,7 @@ function toggleAll() {
   const manzanas = document.getElementById('svg-container')._currentManzanas || [];
   allSelected = !allSelected;
   document.getElementById('all-toggle').classList.toggle('on', allSelected);
+  if (allSelected) { noneSelected = false; document.getElementById('none-toggle').classList.remove('on'); }
   const container = document.getElementById('svg-container');
   const matchedGroups = container._matchedGroups;
 
@@ -1822,80 +2277,52 @@ function toggleAll() {
   updateContinueBtn();
 }
 
+function toggleNone() {
+  noneSelected = !noneSelected;
+  document.getElementById('none-toggle').classList.toggle('on', noneSelected);
+  if (noneSelected) {
+    // Deselect everything else
+    allSelected = false;
+    selectedManzanas = [];
+    document.getElementById('all-toggle').classList.remove('on');
+    const container = document.getElementById('svg-container');
+    const matchedGroups = container._matchedGroups;
+    if (matchedGroups) matchedGroups.forEach(el => {
+      const f = el._fillEl || el;
+      f.setAttribute('fill', f._originalFill || '#e8b84b');
+      f.removeAttribute('fill-opacity');
+      el.style.transform = 'scale(1)';
+    });
+    container.querySelectorAll('.manzana-tile').forEach(el => {
+      el.style.background = 'var(--gold-dim)'; el.style.borderColor = 'transparent';
+      el.style.color = '#0f0f0f'; el.style.transform = 'scale(1)';
+    });
+  }
+  updateContinueBtn();
+}
+
 function updateContinueBtn() {
-  document.getElementById('btn-continue').disabled = selectedManzanas.length === 0 && !allSelected;
+  document.getElementById('btn-continue').disabled = selectedManzanas.length === 0 && !allSelected && !noneSelected;
 }
 
 function renderConfirmStep() {
   const t = hostTerritoriesData[hostCurrentTerritory] || {};
   const manzanas = t.manzanas || [];
   const isAll = allSelected || selectedManzanas.length === manzanas.length;
+  const displayNum = t.number ?? hostCurrentTerritory;
+  const displayName = t.name || `Territorio ${displayNum}`;
 
-  document.getElementById('confirm-num').textContent = hostCurrentTerritory;
   document.getElementById('confirm-title').textContent = isAll
-    ? `Territorio ${hostCurrentTerritory} completado`
-    : `Territorio ${hostCurrentTerritory} – ${selectedManzanas.join(', ')}`;
+    ? `${displayName} completado`
+    : noneSelected
+      ? `${displayName} – No abarcado`
+      : `${displayName} – ${selectedManzanas.join(', ')}`;
   document.getElementById('confirm-subtitle').textContent = '¿Quieres enviar tu reporte?';
   document.getElementById('confirm-manzanas-list').innerHTML = isAll
     ? '<span class="badge badge-green" style="padding:6px 16px;font-size:13px">Territorio completo ✓</span>'
-    : selectedManzanas.map(m => `<span class="confirm-manzana">${m}</span>`).join('');
-}
-
-let allTerritoriesCache = []; // all 36 territories loaded once
-
-async function showAllDone() {
-  [1,2,4].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
-  document.getElementById('host-step-0').classList.remove('hidden');
-  document.getElementById('host-territory-cards').innerHTML = '';
-  document.getElementById('host-welcome-sub').classList.add('hidden');
-  document.getElementById('host-all-done').classList.remove('hidden');
-  const backBtn = document.getElementById('host-back-btn');
-  if (backBtn) backBtn.classList.add('hidden');
-}
-
-async function showExtraPicker() {
-  // Load all territories if not cached
-  if (!allTerritoriesCache.length) {
-    const res = await sb('territories?select=*&order=number.asc', { method:'GET' });
-    const data = await res.json();
-    allTerritoriesCache = Array.isArray(data) ? data : [];
-  }
-
-  // Only show territories with SVG + manzanas, excluding already reported
-  const available = allTerritoriesCache.filter(t =>
-    t.svg_data && t.manzanas?.length > 0 && !hostReportedNums.has(t.number)
-  );
-
-  const listEl = document.getElementById('extra-territory-list');
-  if (!available.length) {
-    listEl.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:32px 0">No hay más territorios disponibles.</p>';
-  } else {
-    listEl.innerHTML = available.map(t => {
-      const svgHtml = buildPreviewSvg(t.svg_data, t.manzanas || [], new Set(), false, true);
-      return `
-      <div onclick="startReportingExtra(${t.number})"
-        style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .2s"
-        onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:#0f0f0f;flex-shrink:0">${t.number}</div>
-            <span style="font-weight:600;font-size:15px">${t.name || `Territorio ${t.number}`}</span>
-          </div>
-          <span style="font-size:12px;color:var(--text-muted)">${t.manzanas.length} manzana${t.manzanas.length !== 1 ? 's' : ''} →</span>
-        </div>
-        ${svgHtml ? `<div style="padding:0 16px 14px;display:flex;justify-content:center;max-height:120px;overflow:hidden">${svgHtml}</div>` : ''}
-      </div>`;
-    }).join('');
-  }
-
-  hostStep(4);
-}
-
-function startReportingExtra(num) {
-  // Load territory data into hostTerritoriesData cache if needed
-  const t = allTerritoriesCache.find(t => t.number === num);
-  if (t) hostTerritoriesData[num] = t;
-  startReporting(num);
+    : noneSelected
+      ? '<span class="badge badge-dim" style="padding:6px 16px;font-size:13px">No abarcado</span>'
+      : selectedManzanas.map(m => `<span class="confirm-manzana">${m}</span>`).join('');
 }
 
 async function submitReport() {
@@ -1906,29 +2333,51 @@ async function submitReport() {
   const t = hostTerritoriesData[hostCurrentTerritory] || {};
   const manzanas = t.manzanas || [];
   const isAll = allSelected || selectedManzanas.length === manzanas.length;
+  const isNone = noneSelected;
 
-  const assignedNums = hostFormData.territory_nums || (hostFormData.territory_num ? [hostFormData.territory_num] : []);
-  const isExtra = !assignedNums.includes(hostCurrentTerritory);
+  const isUuid = typeof hostCurrentTerritory === 'string' && hostCurrentTerritory.includes('-');
 
+  // Core payload — only columns guaranteed to exist in territory_reports
   const payload = {
     form_id: hostFormData.id,
     host_name: hostFormData.host_name,
-    territory_num: hostCurrentTerritory,
-    manzanas_done: isAll ? manzanas : selectedManzanas,
+    territory_num: t.number ?? (isUuid ? null : Number(hostCurrentTerritory) || null),
+    manzanas_done: isAll ? manzanas : (isNone ? [] : selectedManzanas),
     all_territory: isAll,
-    total_manzanas: manzanas.length,
-    is_extra: isExtra
+    total_manzanas: manzanas.length
   };
 
-  const res = await sb('territory_reports', { method:'POST', body: JSON.stringify(payload), prefer:'return=minimal' });
+  // Add extended columns only if migration has been run (detected by presence of territory_ids in form)
+  if (hostFormData.territory_ids !== undefined) {
+    payload.territory_id = isUuid ? hostCurrentTerritory : (t.id || null);
+  }
+  if (isNone) {
+    // Try to add not_covered — will fail gracefully if column doesn't exist
+    payload.not_covered = true;
+  }
+
+  // First attempt
+  let res = await sb('territory_reports', { method:'POST', body: JSON.stringify(payload), prefer:'return=minimal' });
+
+  // If failed and we added optional columns, retry without them
+  if (!res.ok && (payload.territory_id !== undefined || payload.not_covered !== undefined)) {
+    const fallback = {
+      form_id: payload.form_id,
+      host_name: payload.host_name,
+      territory_num: payload.territory_num,
+      manzanas_done: payload.manzanas_done,
+      all_territory: payload.all_territory,
+      total_manzanas: payload.total_manzanas
+    };
+    res = await sb('territory_reports', { method:'POST', body: JSON.stringify(fallback), prefer:'return=minimal' });
+  }
+
   if (res.ok) {
     hostReportedNums.add(hostCurrentTerritory);
-    if (isExtra) {
-      // After extra report: show all-done screen again with option to add more
-      showAllDone();
-    } else {
-      renderHostOverview();
-    }
+    // Reset submit button so it's clean for the next territory
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar';
+    renderHostOverview();
   } else {
     toast('Error al enviar. Intenta de nuevo.', 'error');
     btn.disabled = false;
