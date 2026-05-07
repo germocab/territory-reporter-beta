@@ -964,32 +964,69 @@
 
     <!-- ── DASHBOARD ── -->
     <div id="panel-dashboard" class="admin-panel active">
-      <p class="panel-title">Dashboard</p>
-      <p class="panel-subtitle">Resumen general de la actividad</p>
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="stat-total-forms">–</div><div class="stat-label">Formularios enviados</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-total-reports">–</div><div class="stat-label">Reportes recibidos</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-pending">–</div><div class="stat-label">Sin respuesta</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-coverage">–%</div><div class="stat-label">Cobertura promedio</div></div>
+
+      <!-- Header -->
+      <div style="margin-bottom:24px">
+        <p class="panel-title" id="dash-greeting">Buenos días</p>
+        <p class="panel-subtitle" style="margin-bottom:0">Aquí está el estado actual de tu congregación</p>
       </div>
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3>Reportes por territorio</h3>
-          <div class="chart-wrap"><canvas id="chart-territories"></canvas></div>
+
+      <!-- Quick actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px">
+        <button class="btn btn-gold" onclick="showPanel('forms');setTimeout(()=>toggleCreateForm(),100)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Crear formulario
+        </button>
+        <button class="btn btn-ghost" onclick="showPanel('reports')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Ver reportes
+        </button>
+        <button class="btn btn-ghost" onclick="showPanel('territories')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Territorios
+        </button>
+      </div>
+
+      <!-- Stat cards: 2 cols on mobile, 4 on desktop -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px" id="dash-stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-coverage" style="font-size:28px">–</div>
+          <div class="stat-label">Cobertura promedio</div>
         </div>
-        <div class="chart-card">
-          <h3>Actividad por fecha</h3>
-          <div class="chart-wrap"><canvas id="chart-activity"></canvas></div>
+        <div class="stat-card" id="stat-pending-card">
+          <div class="stat-num" id="stat-pending" style="font-size:28px">–</div>
+          <div class="stat-label">Sin respuesta</div>
         </div>
-        <div class="chart-card">
-          <h3>Cobertura por reporte</h3>
-          <div class="chart-wrap"><canvas id="chart-coverage"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h3>Territorios más trabajados</h3>
-          <div class="chart-wrap"><canvas id="chart-top"></canvas></div>
+        <div class="stat-card" style="grid-column:1/-1" id="stat-weakest-card">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Territorio más incompleto</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="stat-weakest-badge" style="width:44px;height:44px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;color:#fff;flex-shrink:0">–</div>
+            <div style="flex:1;min-width:0">
+              <div id="stat-weakest-name" style="font-size:14px;font-weight:600;margin-bottom:4px">–</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="progress-bar" style="width:100%;max-width:160px"><div class="progress-fill" id="stat-weakest-bar" style="width:0%;background:var(--red)"></div></div>
+                <span id="stat-weakest-pct" style="font-size:12px;color:var(--red);font-weight:700">0%</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Coverage doughnut chart -->
+      <div class="chart-card" style="margin-bottom:24px">
+        <h3>Cobertura por reporte</h3>
+        <div class="chart-wrap"><canvas id="chart-coverage"></canvas></div>
+      </div>
+
+      <!-- Last 5 reports -->
+      <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <h3 style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Últimos reportes</h3>
+        <span style="font-size:12px;color:var(--gold);cursor:pointer" onclick="showPanel('reports')">Ver todos →</span>
+      </div>
+      <div id="dash-recent-reports" style="display:flex;flex-direction:column;gap:10px">
+        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px"><div class="spinner" style="margin:0 auto"></div></div>
+      </div>
+
     </div>
 
     <!-- ── FORMS LIST ── -->
@@ -1961,37 +1998,73 @@ function showPanel(name) {
 
 // ── DASHBOARD ──
 let charts = {};
+
+function dashGreeting() {
+  const h = new Date().getHours();
+  const name = currentAccount?.name?.split(' ')[0] || '';
+  const greeting = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+  return name ? `${greeting}, ${name}` : greeting;
+}
+
 async function loadDashboard() {
+  // Set greeting
+  const greetEl = document.getElementById('dash-greeting');
+  if (greetEl) greetEl.textContent = dashGreeting();
+
   const [formsRes, reportsRes] = await Promise.all([
     sb(congFilter('territory_forms?select=*'), { method: 'GET' }),
-    sb(congFilter('territory_reports?select=*'), { method: 'GET' })
+    sb(congFilter('territory_reports?select=*&order=created_at.desc'), { method: 'GET' })
   ]);
   const forms = await formsRes.json();
   const reports = await reportsRes.json();
 
+  // ── Stats ──
   const pending = forms.filter(f => !reports.find(r => r.form_id === f.id));
-  const coverages = reports.map(r => r.all_territory ? 100 : Math.round((r.manzanas_done?.length || 0) / (r.total_manzanas || 1) * 100));
+  const coverages = reports.map(r =>
+    r.not_covered ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length || 0) / (r.total_manzanas || 1) * 100)
+  );
   const avgCoverage = coverages.length ? Math.round(coverages.reduce((a,b) => a+b,0)/coverages.length) : 0;
 
-  document.getElementById('stat-total-forms').textContent = forms.length;
-  document.getElementById('stat-total-reports').textContent = reports.length;
-  document.getElementById('stat-pending').textContent = pending.length;
   document.getElementById('stat-coverage').textContent = avgCoverage + '%';
+  document.getElementById('stat-pending').textContent = pending.length;
 
-  // Chart: reports per territory
-  const byTerritory = {};
-  reports.forEach(r => { byTerritory[r.territory_num] = (byTerritory[r.territory_num]||0)+1; });
-  const tKeys = Object.keys(byTerritory).sort((a,b) => a-b);
+  // Pending card: highlight red if there are pending
+  const pendingCard = document.getElementById('stat-pending-card');
+  if (pendingCard) pendingCard.style.borderColor = pending.length > 0 ? 'var(--red)' : '';
 
-  drawChart('chart-territories', 'bar', tKeys.map(k => `T${k}`), tKeys.map(k => byTerritory[k]), 'Reportes', '#e8b84b');
+  // ── Weakest territory (lowest avg coverage, min 1 report) ──
+  const byCoverage = {};
+  const byCount = {};
+  reports.forEach(r => {
+    const key = r.territory_num ?? r.territory_id ?? '?';
+    const cov = r.not_covered ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    byCoverage[key] = (byCoverage[key] || 0) + cov;
+    byCount[key] = (byCount[key] || 0) + 1;
+  });
+  const avgByCov = Object.keys(byCoverage).map(k => ({ key: k, avg: Math.round(byCoverage[k] / byCount[k]) }));
+  const weakest = avgByCov.sort((a,b) => a.avg - b.avg)[0];
 
-  // Chart: activity by date
-  const byDate = {};
-  reports.forEach(r => { const d = r.created_at?.split('T')[0]; byDate[d] = (byDate[d]||0)+1; });
-  const dKeys = Object.keys(byDate).sort();
-  drawChart('chart-activity', 'line', dKeys, dKeys.map(k => byDate[k]), 'Reportes', '#4caf7d');
+  const badge = document.getElementById('stat-weakest-badge');
+  const nameEl = document.getElementById('stat-weakest-name');
+  const bar = document.getElementById('stat-weakest-bar');
+  const pct = document.getElementById('stat-weakest-pct');
 
-  // Chart: coverage distribution
+  if (weakest) {
+    badge.textContent = weakest.key;
+    nameEl.textContent = `Territorio ${weakest.key} · ${byCount[weakest.key]} reporte${byCount[weakest.key]>1?'s':''}`;
+    bar.style.width = weakest.avg + '%';
+    pct.textContent = weakest.avg + '%';
+    const color = weakest.avg < 40 ? 'var(--red)' : weakest.avg < 70 ? 'var(--gold)' : 'var(--green)';
+    badge.style.background = color;
+    bar.style.background = color;
+    pct.style.color = color;
+  } else {
+    badge.textContent = '–';
+    nameEl.textContent = 'Sin datos aún';
+    pct.textContent = '–';
+  }
+
+  // ── Chart: coverage distribution (doughnut) ──
   const buckets = {'0-25%':0,'26-50%':0,'51-75%':0,'76-99%':0,'100%':0};
   coverages.forEach(c => {
     if (c===100) buckets['100%']++;
@@ -2002,9 +2075,32 @@ async function loadDashboard() {
   });
   drawChart('chart-coverage', 'doughnut', Object.keys(buckets), Object.values(buckets), 'Reportes', ['#e05c5c','#e8b84b','#f0c85a','#7dce9c','#4caf7d']);
 
-  // Chart: top territories by reports
-  const sorted = tKeys.sort((a,b) => byTerritory[b]-byTerritory[a]).slice(0,8);
-  drawChart('chart-top', 'bar', sorted.map(k=>`T${k}`), sorted.map(k=>byTerritory[k]), 'Reportes', '#4caf7d', true);
+  // ── Last 5 reports ──
+  const container = document.getElementById('dash-recent-reports');
+  const last5 = reports.slice(0, 5);
+
+  if (!last5.length) {
+    container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">No hay reportes aún</div>`;
+    return;
+  }
+
+  container.innerHTML = last5.map(r => {
+    const cov = r.not_covered ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    const covColor = r.not_covered ? 'var(--text-muted)' : cov === 100 ? 'var(--green)' : cov >= 60 ? 'var(--gold)' : 'var(--red)';
+    const tNum = r.territory_num ?? '?';
+    const dateStr = r.created_at ? r.created_at.split('T')[0] : '';
+    const label = r.not_covered ? 'No abarcado' : r.all_territory ? 'Completo ✓' : `${cov}%`;
+    return `
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;transition:border-color .15s"
+      onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gold-pale);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:var(--gold);flex-shrink:0">${tNum}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.host_name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${formatDate(dateStr)}</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${covColor};flex-shrink:0">${label}</div>
+    </div>`;
+  }).join('');
 }
 
 function drawChart(id, type, labels, data, label, color, horizontal=false) {
