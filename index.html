@@ -105,7 +105,6 @@
   .btn-green:hover { background: #5dc98e; }
   .btn-danger { background: var(--red); color: #fff; }
   .btn:disabled { opacity: 0.45; pointer-events: none; }
-  #btn-continue:disabled { background: #e8194b; color: #fff; opacity: 0.4; }
 
   input, select, textarea {
     background: var(--surface2); border: 1px solid var(--border); color: var(--text);
@@ -666,16 +665,6 @@
   .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
 
   /* ─── HOST SCREEN overrides (new design) ─── */
-  #host-screen {
-    background: var(--bg);
-  }
-  #host-screen .btn-gold {
-    background: #e8194b;
-    color: #fff;
-  }
-  #host-screen .btn-gold:hover { background: #d01540; }
-  #host-screen .toggle.on { background: #e8194b; }
-  #host-screen .host-territory-pill { background: #e8194b; }
   html.light #host-screen { background: #f0ede8; }
   html.light #host-screen .svg-territory-container { background: #ffffff; }
   .sidebar-congregation {
@@ -1347,6 +1336,7 @@
       <div class="territory-title-row">
         <h2 style="font-family:'DM Serif Display',serif;font-size:28px">Territorio</h2>
         <span class="host-territory-pill" id="host-territory-pill-num">4</span>
+        <span id="host-sel-territory" style="display:none"></span>
       </div>
       <p style="color:var(--text-muted);font-size:13px">Selecciona las manzanas abarcadas</p>
     </div>
@@ -3535,6 +3525,10 @@ function applyTerritoryColor(num) {
   // Apply to Submit button (step 2)
   const btnSubmit = document.getElementById('btn-submit');
   if (btnSubmit) { btnSubmit.style.background = color; btnSubmit.style.color = '#0f0f0f'; }
+
+  // Apply to territory number pill
+  const pill = document.getElementById('host-territory-pill-num');
+  if (pill) { pill.style.background = color; pill.style.color = '#0f0f0f'; }
 }
 
 function startReporting(num) {
@@ -3546,6 +3540,8 @@ function startReporting(num) {
   const t = hostTerritoriesData[num] || { manzanas: [], svg_data: null };
 
   document.getElementById('host-sel-territory').textContent = t?.number ?? num;
+  const pillEl = document.getElementById('host-territory-pill-num');
+  if (pillEl) pillEl.textContent = t?.number ?? num;
 
   document.getElementById('host-step-0').classList.add('hidden');
   document.getElementById('host-step-1').classList.remove('hidden');
