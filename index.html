@@ -1421,54 +1421,55 @@ function formatDate(d) {
 }
 
 // ════════════════════════════════════════
-// ACCOUNTS SYSTEM
+// ACCOUNTS SYSTEM (Supabase-backed — visible on all devices)
 // ════════════════════════════════════════
-const ACCOUNTS_KEY = 'tr_accounts_v1';
 
-function getStoredAccounts() {
-  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); } catch(e) { return []; }
-}
-
-function saveAccounts(accounts) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-}
+// Quick-login modal: shown when user clicks an account from the list
+let _quickLoginUsername = null;
 
 function showAccountsScreen() {
   show('accounts-screen');
   renderSavedAccounts();
-  // Keyboard shortcuts
   document.getElementById('acc-login-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') doAccountLogin();
   });
 }
 
-function renderSavedAccounts() {
-  const accounts = getStoredAccounts();
+async function renderSavedAccounts() {
   const el = document.getElementById('saved-accounts-list');
-  if (!accounts.length) {
-    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">
-      No hay cuentas guardadas. <span style="color:var(--gold);cursor:pointer" onclick="switchAccTab('register')">Crea la primera</span>
-    </div>`;
-    return;
-  }
-  el.innerHTML = accounts.map((acc, i) => `
-    <div class="account-item" onclick="quickLoginAccount(${i})">
-      <div class="account-avatar">${acc.name.charAt(0).toUpperCase()}</div>
-      <div class="account-info">
-        <div class="account-name">${acc.name}</div>
-        <div class="account-congregation">${acc.congregation}</div>
+  el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px"><div class="spinner" style="margin:0 auto"></div></div>`;
+
+  try {
+    const res = await sb('accounts?select=name,congregation,username&order=created_at.asc', { method: 'GET' });
+    const accounts = res.ok ? await res.json() : [];
+
+    if (!accounts.length) {
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">
+        No hay cuentas aún. <span style="color:var(--gold);cursor:pointer" onclick="switchAccTab('register')">Crea la primera</span>
+      </div>`;
+      return;
+    }
+
+    el.innerHTML = accounts.map(acc => `
+      <div class="account-item" onclick="quickLoginAccount('${acc.username}')">
+        <div class="account-avatar">${acc.name.charAt(0).toUpperCase()}</div>
+        <div class="account-info">
+          <div class="account-name">${acc.name}</div>
+          <div class="account-congregation">${acc.congregation}</div>
+        </div>
+        <svg class="account-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <svg class="account-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  `).join('');
+    `).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Error cargando cuentas</div>`;
+  }
 }
 
-function quickLoginAccount(idx) {
-  const accounts = getStoredAccounts();
-  if (!accounts[idx]) return;
-  currentAccount = accounts[idx];
-  sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
-  showAdmin();
+// When user clicks an account from the list, prefill username and go to login tab
+function quickLoginAccount(username) {
+  document.getElementById('acc-login-username').value = username;
+  switchAccTab('login');
+  setTimeout(() => document.getElementById('acc-login-password').focus(), 80);
 }
 
 function switchAccTab(tab) {
@@ -1476,11 +1477,15 @@ function switchAccTab(tab) {
     document.getElementById(`acc-tab-${t}`).classList.toggle('active', t === tab);
     document.getElementById(`acc-panel-${t}`).classList.toggle('hidden', t !== tab);
   });
-  if (tab === 'login') setTimeout(() => document.getElementById('acc-login-username').focus(), 50);
+  if (tab === 'login') setTimeout(() => {
+    const uField = document.getElementById('acc-login-username');
+    if (uField.value) document.getElementById('acc-login-password').focus();
+    else uField.focus();
+  }, 50);
   if (tab === 'register') setTimeout(() => document.getElementById('reg-name').focus(), 50);
 }
 
-function doAccountLogin() {
+async function doAccountLogin() {
   const username = document.getElementById('acc-login-username').value.trim().toLowerCase();
   const password = document.getElementById('acc-login-password').value;
   const errEl = document.getElementById('acc-error');
@@ -1488,22 +1493,25 @@ function doAccountLogin() {
 
   if (!username || !password) { errEl.textContent = 'Completa usuario y contraseña'; errEl.classList.remove('hidden'); return; }
 
-  const accounts = getStoredAccounts();
-  const found = accounts.find(a => a.username === username && a.password === btoa(password));
+  // Look up account in Supabase
+  const res = await sb(`accounts?username=eq.${encodeURIComponent(username)}&select=*`, { method: 'GET' });
+  if (!res.ok) { errEl.textContent = 'Error de conexión. Intenta de nuevo.'; errEl.classList.remove('hidden'); return; }
+  const rows = await res.json();
 
-  if (!found) {
+  if (!rows.length || rows[0].password_hash !== btoa(password)) {
     errEl.textContent = 'Usuario o contraseña incorrectos';
     errEl.classList.remove('hidden');
     return;
   }
 
-  currentAccount = found;
+  const acc = rows[0];
+  currentAccount = { name: acc.name, congregation: acc.congregation, username: acc.username };
   sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
   document.getElementById('acc-login-password').value = '';
   showAdmin();
 }
 
-function doAccountRegister() {
+async function doAccountRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const congregation = document.getElementById('reg-congregation').value.trim();
   const username = document.getElementById('reg-username').value.trim().toLowerCase().replace(/\s+/g,'_');
@@ -1521,16 +1529,33 @@ function doAccountRegister() {
     errEl.textContent = 'El usuario solo puede tener letras, números y _'; errEl.classList.remove('hidden'); return;
   }
 
-  const accounts = getStoredAccounts();
-  if (accounts.find(a => a.username === username)) {
-    errEl.textContent = 'Ese nombre de usuario ya existe'; errEl.classList.remove('hidden'); return;
+  // Check if username already exists in Supabase
+  const checkRes = await sb(`accounts?username=eq.${encodeURIComponent(username)}&select=username`, { method: 'GET' });
+  if (checkRes.ok) {
+    const existing = await checkRes.json();
+    if (existing.length) {
+      errEl.textContent = 'Ese nombre de usuario ya existe'; errEl.classList.remove('hidden'); return;
+    }
   }
 
-  const newAccount = { name, congregation, username, password: btoa(password), createdAt: new Date().toISOString() };
-  accounts.push(newAccount);
-  saveAccounts(accounts);
+  // Insert new account into Supabase
+  const insertRes = await sb('accounts', {
+    method: 'POST',
+    body: JSON.stringify({ name, congregation, username, password_hash: btoa(password) }),
+    prefer: 'return=minimal'
+  });
 
-  currentAccount = newAccount;
+  if (!insertRes.ok) {
+    const errBody = await insertRes.text().catch(() => '');
+    if (errBody.includes('duplicate') || errBody.includes('unique')) {
+      errEl.textContent = 'Ese nombre de usuario ya existe'; errEl.classList.remove('hidden');
+    } else {
+      errEl.textContent = 'Error al crear la cuenta. Intenta de nuevo.'; errEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  currentAccount = { name, congregation, username };
   sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
   toast('¡Cuenta creada!');
   showAdmin();
