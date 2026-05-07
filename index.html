@@ -1019,8 +1019,14 @@
         <button class="btn btn-ghost" onclick="loadReports()" style="padding:7px 14px;font-size:12px">↺ Actualizar</button>
       </div>
 
-      <!-- Monthly calendar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+      <!-- Monthly calendar (collapsible) -->
+      <div style="margin-bottom:16px">
+        <button onclick="toggleCalendar()" id="cal-toggle-btn" class="btn btn-ghost" style="padding:8px 16px;font-size:13px;gap:8px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Mostrar calendario
+        </button>
+      </div>
+      <div id="cal-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
         <div class="cal-nav">
           <button class="cal-nav-btn" onclick="calPrevMonth()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1243,6 +1249,25 @@ const sb = (path, opts = {}) => {
     },
     ...fetchOpts
   });
+};
+
+// Returns the congregation identifier for the active account
+function getCong() {
+  return currentAccount?.congregation || 'Fleming';
+}
+
+// Appends a congregation filter to a Supabase REST path.
+// Works on paths that already have query params (using &) and those that don't (using ?).
+function congFilter(path) {
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}congregation=eq.${encodeURIComponent(getCong())}`;
+}
+
+// Supabase helper that auto-injects congregation filter for GET reads
+const sbCong = (path, opts = {}) => {
+  const method = opts.method || 'GET';
+  const filteredPath = method === 'GET' ? congFilter(path) : path;
+  return sb(filteredPath, opts);
 };
 
 // ════════════════════════════════════════
@@ -1559,8 +1584,8 @@ function showPanel(name) {
 let charts = {};
 async function loadDashboard() {
   const [formsRes, reportsRes] = await Promise.all([
-    sb('territory_forms?select=*', { method: 'GET' }),
-    sb('territory_reports?select=*', { method: 'GET' })
+    sb(congFilter('territory_forms?select=*'), { method: 'GET' }),
+    sb(congFilter('territory_reports?select=*'), { method: 'GET' })
   ]);
   const forms = await formsRes.json();
   const reports = await reportsRes.json();
@@ -1631,14 +1656,14 @@ function drawChart(id, type, labels, data, label, color, horizontal=false) {
 
 // ── FORMS ──
 async function loadForms() {
-  const res = await sb('territory_forms?select=*&order=created_at.desc', { method:'GET' });
+  const res = await sb(congFilter('territory_forms?select=*&order=created_at.desc'), { method:'GET' });
   const forms = await res.json();
   const grid = document.getElementById('forms-grid');
   if (!forms.length) { grid.innerHTML = '<div class="empty-state"><h3>Sin formularios aún</h3><p>Crea el primero con "Nuevo formulario"</p></div>'; return; }
 
   const [rRes, terRes] = await Promise.all([
-    sb('territory_reports?select=form_id,territory_num,territory_id', { method:'GET' }),
-    sb('territories?select=id,number,name&order=number.asc', { method:'GET' })
+    sb(congFilter('territory_reports?select=form_id,territory_num,territory_id'), { method:'GET' }),
+    sb(congFilter('territories?select=id,number,name&order=number.asc'), { method:'GET' })
   ]);
   const reports = await rRes.json();
   const terListRaw = await terRes.json();
@@ -1716,6 +1741,19 @@ const MONTHS_FULL_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'
 
 function calPrevMonth() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
 function calNextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+
+let calendarVisible = false;
+function toggleCalendar() {
+  calendarVisible = !calendarVisible;
+  const panel = document.getElementById('cal-panel');
+  const btn = document.getElementById('cal-toggle-btn');
+  panel.classList.toggle('hidden', !calendarVisible);
+  if (btn) {
+    const calIcon = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+    btn.innerHTML = calendarVisible ? calIcon + ' Ocultar calendario' : calIcon + ' Mostrar calendario';
+  }
+  if (calendarVisible) renderCalendar();
+}
 
 function renderCalendar() {
   const label = document.getElementById('cal-month-label');
@@ -1846,9 +1884,9 @@ let allFormMap = {};
 
 async function loadReports() {
   const [repRes, terRes, formRes] = await Promise.all([
-    sb('territory_reports?select=*&order=created_at.desc', { method:'GET' }),
-    sb('territories?select=*', { method:'GET' }),
-    sb('territory_forms?select=*', { method:'GET' })
+    sb(congFilter('territory_reports?select=*&order=created_at.desc'), { method:'GET' }),
+    sb(congFilter('territories?select=*'), { method:'GET' }),
+    sb(congFilter('territory_forms?select=*'), { method:'GET' })
   ]);
   allReportsData = await repRes.json();
   const territories = await terRes.json();
@@ -1895,7 +1933,7 @@ async function deleteReport(id) {
 
 // ── TERRITORIES PANEL ──
 async function loadTerritories() {
-  const res = await sb('territories?select=*&order=number.asc', { method:'GET' });
+  const res = await sb(congFilter('territories?select=*&order=number.asc'), { method:'GET' });
   let territories = await res.json();
   if (!Array.isArray(territories)) territories = [];
 
@@ -1907,8 +1945,8 @@ async function loadTerritories() {
 
   // Fetch all reports to compute usage counts per territory
   const [repRes, formRes] = await Promise.all([
-    sb('territory_reports?select=territory_id,territory_num,form_id,host_name,created_at,all_territory,manzanas_done,total_manzanas,not_covered', { method:'GET' }),
-    sb('territory_forms?select=id,assignment_date', { method:'GET' })
+    sb(congFilter('territory_reports?select=territory_id,territory_num,form_id,host_name,created_at,all_territory,manzanas_done,total_manzanas,not_covered'), { method:'GET' }),
+    sb(congFilter('territory_forms?select=id,assignment_date'), { method:'GET' })
   ]);
   const repData = await repRes.json();
   const formData = await formRes.json();
@@ -1964,7 +2002,7 @@ async function loadTerritories() {
     const lastDate = lastRep?.assignDate;
     const lastLabel = lastDate
       ? (() => { const [y,mo,d] = lastDate.split('-').map(Number); return `Último: ${d}/${mo}/${y}`; })()
-      : 'Nunca trabajado';
+      : '';
 
     return `
     <div class="form-card">
@@ -1976,7 +2014,7 @@ async function loadTerritories() {
         </div>
       </div>
       <h3 style="margin-bottom:4px">${t?.name || `Territorio ${n}`}</h3>
-      <p style="font-size:11px;color:${lastDate ? 'var(--text-muted)' : 'var(--red)'};margin-bottom:4px">${lastLabel}</p>
+      ${lastLabel ? `<p style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${lastLabel}</p>` : ''}
       <p>${mcount ? `${mcount} manzana${mcount!==1?'s':''}: ${(t.manzanas||[]).join(', ')}` : 'Sin manzanas configuradas'}</p>
 
       ${hasSvg ? `
@@ -1986,11 +2024,10 @@ async function loadTerritories() {
       </div>` : '<div style="margin:14px 0 10px"></div>'}
 
       <div class="form-card-actions">
-        ${timesWorked > 0 ? `
         <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="openTerritoryHistory('${t.id}', ${n})">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Historial
-        </button>` : ''}
+        </button>
         <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="openTerritoryModal('${t.id}')">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Editar
@@ -2012,8 +2049,8 @@ async function openTerritoryHistory(territoryId, territoryNum) {
   document.getElementById('territory-history-modal').classList.remove('hidden');
 
   const [repRes, formRes] = await Promise.all([
-    sb(`territory_reports?or=(territory_id.eq.${territoryId},territory_num.eq.${territoryNum})&select=*&order=created_at.desc`, { method:'GET' }),
-    sb('territory_forms?select=id,assignment_date', { method:'GET' })
+    sb(congFilter(`territory_reports?or=(territory_id.eq.${territoryId},territory_num.eq.${territoryNum})&select=*&order=created_at.desc`), { method:'GET' }),
+    sb(congFilter('territory_forms?select=id,assignment_date'), { method:'GET' })
   ]);
   const reps = await repRes.json();
   const forms = await formRes.json();
@@ -2032,11 +2069,22 @@ async function openTerritoryHistory(territoryId, territoryNum) {
   content.innerHTML = reps.map(r => {
     const date = formDateMap[r.form_id] || r.created_at?.split('T')[0] || '–';
     const coverage = r.not_covered ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    const allManzanas = (r.total_manzanas > 0 && !r.all_territory && !r.not_covered && r.manzanas_done)
+      ? null : null; // tiles only via badge list
+
     const manzadasHtml = r.all_territory
       ? '<span class="badge badge-green" style="font-size:11px">Territorio completo</span>'
       : r.not_covered
         ? '<span class="badge badge-dim" style="font-size:11px">No abarcado</span>'
         : (r.manzanas_done||[]).map(m=>`<span class="badge badge-gold" style="font-size:11px">${m}</span>`).join(' ');
+
+    const pctDisplay = r.not_covered ? '' : `
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span style="font-size:16px;font-weight:700;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span>
+        <div class="progress-bar" style="width:80px;height:8px">
+          <div class="progress-fill" style="width:${coverage}%;background:${coverage===100?'var(--green)':'var(--gold)'}"></div>
+        </div>
+      </div>`;
 
     return `
     <div class="history-entry">
@@ -2044,10 +2092,8 @@ async function openTerritoryHistory(territoryId, territoryNum) {
       <div class="history-meta">
         <div class="history-date">${formatDate(date)}</div>
         <div class="history-who">Publicador: ${r.host_name || '–'}</div>
-        <div class="history-coverage">
-          ${r.not_covered ? '' : `<span style="font-weight:700;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span> · `}
-          <span style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${manzadasHtml}</span>
-        </div>
+        ${pctDisplay}
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${manzadasHtml}</div>
       </div>
     </div>`;
   }).join('');
@@ -2177,7 +2223,7 @@ async function saveTerritory() {
   }
   // Duplicate numbers are allowed — different territories can share the same number
 
-  const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData };
+  const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData, congregation: getCong() };
 
   try {
     if (currentTerritoryId) {
@@ -2207,7 +2253,7 @@ async function deleteTerritory(id, num) {
 }
 // ── CREATE FORM ──
 async function populateTerritorySelect() {
-  const res = await sb(`territories?select=id,number,name&order=number.asc`, { method:'GET', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
+  const res = await sb(congFilter(`territories?select=id,number,name&order=number.asc`), { method:'GET', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
   let territories = await res.json();
   if (!Array.isArray(territories)) territories = [];
 
@@ -2250,7 +2296,7 @@ async function createForm() {
   const token = genToken();
   const tNums = tPairs.map(p => p.number);
   // territory_ids = array of UUIDs (new); territory_nums = array of numbers (compat); territory_num = first number (legacy)
-  const payload = { host_name: host, territory_num: tNums[0], territory_nums: tNums, territory_ids: tIds, assignment_date: date, notes: notes || null, token };
+  const payload = { host_name: host, territory_num: tNums[0], territory_nums: tNums, territory_ids: tIds, assignment_date: date, notes: notes || null, token, congregation: getCong() };
 
   try {
     const res = await sb('territory_forms', { method:'POST', body: JSON.stringify(payload), prefer: 'return=representation' });
@@ -2903,7 +2949,8 @@ async function submitReport() {
     territory_num: t.number ?? (isUuid ? null : Number(hostCurrentTerritory) || null),
     manzanas_done: isAll ? manzanas : (isNone ? [] : selectedManzanas),
     all_territory: isAll,
-    total_manzanas: manzanas.length
+    total_manzanas: manzanas.length,
+    congregation: hostFormData.congregation || null
   };
 
   // Add extended columns only if migration has been run (detected by presence of territory_ids in form)
