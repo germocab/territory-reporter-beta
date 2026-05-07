@@ -644,15 +644,16 @@
 
   /* ─── MONTHLY CALENDAR ─── */
   .cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 0;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 0;
+    max-width: 280px; margin-left: auto; margin-right: auto;
   }
   .cal-day-label {
-    text-align: center; font-size: 10px; color: var(--text-dim); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 6px;
+    text-align: center; font-size: 9px; color: var(--text-dim); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 4px;
   }
   .cal-day {
-    aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center;
-    justify-content: center; font-size: 12px; font-weight: 500; position: relative;
+    aspect-ratio: 1; border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; font-size: 10px; font-weight: 500; position: relative;
     cursor: default; transition: background 0.15s;
   }
   .cal-day.empty { background: transparent; }
@@ -663,19 +664,20 @@
   }
   .cal-day.has-activity:hover { background: var(--gold); color: #0f0f0f; }
   .cal-day .cal-dot {
-    position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
-    width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
   }
   .cal-nav {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    max-width: 280px; margin-left: auto; margin-right: auto;
   }
   .cal-nav-btn {
-    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border);
     background: transparent; color: var(--text-muted); cursor: pointer; display: flex;
     align-items: center; justify-content: center; transition: all 0.15s;
   }
   .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
+  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 14px; }
 
   /* ─── SIDEBAR congregation label ─── */
   .sidebar-congregation {
@@ -954,9 +956,17 @@
           <button onclick="document.getElementById('migration-note').remove()" style="background:none;border:none;color:var(--gold);cursor:pointer;padding:0;margin-left:auto;flex-shrink:0;font-size:16px;line-height:1">×</button>
         </div>
         <div class="create-form-grid">
-          <div class="form-group">
+          <div class="form-group full-width">
             <label>Publicador</label>
-            <input type="text" id="cf-host" placeholder="Ej: Nico">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="cf-host" style="flex:1">
+                <option value="">Seleccionar publicador...</option>
+              </select>
+              <button class="btn btn-ghost" onclick="openAddBrotherModal()" type="button" style="padding:9px 14px;font-size:12px;white-space:nowrap;flex-shrink:0">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Nuevo Hermano
+              </button>
+            </div>
           </div>
           <div class="form-group full-width">
             <label>Fecha de asignación</label>
@@ -980,10 +990,6 @@
               <select id="cf-territory-3" style="flex:1"><option value="">Opcional</option></select>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Notas / Instrucciones (opcional)</label>
-          <textarea id="cf-notes" rows="2" placeholder="Instrucciones especiales, horarios, etc."></textarea>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <button class="btn btn-gold" onclick="createForm()" id="btn-create-form">
@@ -1026,7 +1032,7 @@
           Mostrar calendario
         </button>
       </div>
-      <div id="cal-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+      <div id="cal-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:24px;display:inline-block;width:auto">
         <div class="cal-nav">
           <button class="cal-nav-btn" onclick="calPrevMonth()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1228,6 +1234,27 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════
+     NUEVO HERMANO MODAL
+════════════════════════════════════════ -->
+<div id="add-brother-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:360px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 style="font-size:18px">Nuevo Hermano</h2>
+      <button onclick="closeModal('add-brother-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:0">×</button>
+    </div>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="brother-name-input" placeholder="Ej: Nicolás García" autocomplete="off">
+    </div>
+    <div id="brother-error" class="hidden" style="color:var(--red);font-size:13px;margin-bottom:10px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-brother-modal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveBrother()">Agregar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ════════════════════════════════════════
@@ -1557,6 +1584,7 @@ function showAdmin() {
   loadReports();
   loadTerritories();
   populateTerritorySelect();
+  populateBrothersSelect();
   document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
 }
 
@@ -2223,7 +2251,31 @@ async function saveTerritory() {
   }
   // Duplicate numbers are allowed — different territories can share the same number
 
-  const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData, congregation: getCong() };
+  const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData };
+  // Try to include congregation if the column exists
+  const payloadWithCong = { ...payload, congregation: getCong() };
+
+  try {
+    let res;
+    if (currentTerritoryId) {
+      res = await sb(`territories?id=eq.${currentTerritoryId}`, { method:'PATCH', body: JSON.stringify(payloadWithCong), prefer:'return=minimal' });
+      if (!res.ok) res = await sb(`territories?id=eq.${currentTerritoryId}`, { method:'PATCH', body: JSON.stringify(payload), prefer:'return=minimal' });
+    } else {
+      res = await sb('territories', { method:'POST', body: JSON.stringify(payloadWithCong), prefer:'return=minimal' });
+      if (!res.ok) res = await sb('territories', { method:'POST', body: JSON.stringify(payload), prefer:'return=minimal' });
+    }
+    if (res.ok) {
+      toast('Territorio guardado \u2713');
+      closeModal('territory-modal');
+      loadTerritories();
+      populateTerritorySelect();
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      toast('Error: ' + (errData?.message || errData?.error || 'No se pudo guardar'), 'error');
+    }
+  } catch(err) {
+    toast('Error de red al guardar', 'error');
+  }
 
   try {
     if (currentTerritoryId) {
@@ -2271,9 +2323,10 @@ async function populateTerritorySelect() {
 }
 
 async function createForm() {
-  const host = document.getElementById('cf-host').value.trim();
+  const hostSel = document.getElementById('cf-host');
+  const host = hostSel.options[hostSel.selectedIndex]?.text || '';
+  const hostVal = hostSel.value;
   const date = document.getElementById('cf-date').value;
-  const notes = document.getElementById('cf-notes').value.trim();
   const t1 = document.getElementById('cf-territory-1').value;
   const t2 = document.getElementById('cf-territory-2').value;
   const t3 = document.getElementById('cf-territory-3').value;
@@ -2283,7 +2336,7 @@ async function createForm() {
     const [id, num] = v.split(':');
     return { id, number: Number(num) };
   });
-  if (!host || !date || !tPairs.length) { toast('Completa los campos obligatorios y selecciona al menos un territorio', 'error'); return; }
+  if (!hostVal || !date || !tPairs.length) { toast('Selecciona publicador, fecha y al menos un territorio', 'error'); return; }
 
   // Check for duplicates by id
   const tIds = tPairs.map(p => p.id);
@@ -2296,7 +2349,7 @@ async function createForm() {
   const token = genToken();
   const tNums = tPairs.map(p => p.number);
   // territory_ids = array of UUIDs (new); territory_nums = array of numbers (compat); territory_num = first number (legacy)
-  const payload = { host_name: host, territory_num: tNums[0], territory_nums: tNums, territory_ids: tIds, assignment_date: date, notes: notes || null, token, congregation: getCong() };
+  const payload = { host_name: host, territory_num: tNums[0], territory_nums: tNums, territory_ids: tIds, assignment_date: date, token, congregation: getCong() };
 
   try {
     const res = await sb('territory_forms', { method:'POST', body: JSON.stringify(payload), prefer: 'return=representation' });
@@ -2308,7 +2361,6 @@ async function createForm() {
       document.getElementById('created-link-url').textContent = link;
       document.getElementById('created-link-box').classList.remove('hidden');
       document.getElementById('cf-host').value = '';
-      document.getElementById('cf-notes').value = '';
       for (let i = 1; i <= 3; i++) document.getElementById(`cf-territory-${i}`).value = '';
       document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
       toast('¡Formulario creado!');
@@ -2331,19 +2383,63 @@ function copyCreatedLink() {
   navigator.clipboard.writeText(url).then(() => toast('¡Enlace copiado!'));
 }
 
+// ── BROTHERS (Publicadores) ──
+function getBrothersKey() { return `tr_brothers_${getCong()}`; }
+function getBrothers() {
+  try { return JSON.parse(localStorage.getItem(getBrothersKey()) || '[]'); } catch(e) { return []; }
+}
+function saveBrothers(list) { localStorage.setItem(getBrothersKey(), JSON.stringify(list)); }
+
+function populateBrothersSelect() {
+  const sel = document.getElementById('cf-host');
+  if (!sel) return;
+  const brothers = getBrothers().sort((a,b) => a.localeCompare(b));
+  sel.innerHTML = `<option value="">Seleccionar publicador...</option>` +
+    brothers.map(b => `<option value="${b}">${b}</option>`).join('');
+}
+
+function openAddBrotherModal() {
+  document.getElementById('brother-name-input').value = '';
+  document.getElementById('brother-error').classList.add('hidden');
+  document.getElementById('add-brother-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('brother-name-input').focus(), 80);
+}
+
+function saveBrother() {
+  const name = document.getElementById('brother-name-input').value.trim();
+  const errEl = document.getElementById('brother-error');
+  errEl.classList.add('hidden');
+  if (!name) { errEl.textContent = 'Ingresa un nombre'; errEl.classList.remove('hidden'); return; }
+  const brothers = getBrothers();
+  if (brothers.includes(name)) { errEl.textContent = 'Ya existe ese nombre'; errEl.classList.remove('hidden'); return; }
+  brothers.push(name);
+  saveBrothers(brothers);
+  closeModal('add-brother-modal');
+  populateBrothersSelect();
+  // Auto-select the newly added person
+  const sel = document.getElementById('cf-host');
+  if (sel) sel.value = name;
+  toast(`${name} agregado ✓`);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('add-brother-modal').classList.contains('hidden')) {
+    saveBrother();
+  }
+});
+
 function toggleCreateForm() {
   const box = document.getElementById('create-form-inline');
   const isHidden = box.classList.contains('hidden');
   box.classList.toggle('hidden');
   if (isHidden) {
     populateTerritorySelect();
+    populateBrothersSelect();
     document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('created-link-box').classList.add('hidden');
-    document.getElementById('cf-host').focus();
   } else {
     document.getElementById('created-link-box').classList.add('hidden');
     document.getElementById('cf-host').value = '';
-    document.getElementById('cf-notes').value = '';
     for (let i = 1; i <= 3; i++) { const s = document.getElementById(`cf-territory-${i}`); if(s) s.value = ''; }
     document.getElementById('cf-date').value = '';
   }
