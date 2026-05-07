@@ -1203,7 +1203,23 @@
           <p class="panel-title" style="margin-bottom:4px">Reportes</p>
           <p class="panel-subtitle" style="margin-bottom:0">Respuestas recibidas de los publicadores</p>
         </div>
-        <button class="btn btn-ghost" onclick="loadReports()" style="padding:7px 14px;font-size:12px">↺ Actualizar</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="document.getElementById('import-reports-input').click()" id="btn-import-reports">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir datos
+          </button>
+          <input type="file" id="import-reports-input" accept=".json" class="hidden" onchange="importReportsData(event)">
+          <button class="btn btn-ghost" onclick="loadReports()" style="padding:7px 14px;font-size:12px">↺ Actualizar</button>
+        </div>
+      </div>
+
+      <!-- Import result banner (hidden by default) -->
+      <div id="import-result-banner" class="hidden" style="background:var(--green-pale);border:1px solid var(--green);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:fadeUp .25s ease">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="15" height="15" fill="none" stroke="var(--green)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="import-result-text" style="font-size:13px;color:var(--green);font-weight:600"></span>
+        </div>
+        <button onclick="document.getElementById('import-result-banner').classList.add('hidden')" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
       </div>
 
       <!-- Monthly calendar (collapsible) -->
@@ -2654,6 +2670,135 @@ async function deleteReport(id) {
     loadDashboard();
   } else {
     toast('Error al eliminar', 'error');
+  }
+}
+
+// ── IMPORT REPORTS DATA ──
+async function importReportsData(event) {
+  const file = event.target.files[0];
+  // Reset input so the same file can be re-selected if needed
+  event.target.value = '';
+  if (!file) return;
+
+  const btn = document.getElementById('btn-import-reports');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Importando...';
+
+  try {
+    const text = await file.text();
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      toast('Archivo JSON inválido. Verifica el archivo.', 'error');
+      return;
+    }
+
+    // Validate structure
+    if (!parsed.territory_reports || !Array.isArray(parsed.territory_reports)) {
+      toast('El archivo no contiene datos de reportes válidos.', 'error');
+      return;
+    }
+
+    const incoming = parsed.territory_reports;
+    if (!incoming.length) {
+      toast('El archivo no contiene reportes.', 'error');
+      return;
+    }
+
+    // Fetch existing report IDs to avoid duplicates
+    const existingRes = await sb(congFilter('territory_reports?select=id'), { method:'GET' });
+    const existingRaw = await existingRes.json();
+    const existingIds = new Set(Array.isArray(existingRaw) ? existingRaw.map(r => r.id) : []);
+
+    const cong = getCong();
+    let inserted = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const r of incoming) {
+      // Skip if already exists (same id)
+      if (r.id && existingIds.has(r.id)) {
+        skipped++;
+        continue;
+      }
+
+      // Build insert payload — only columns guaranteed to exist
+      const payload = {
+        congregation: cong,
+        host_name: r.host_name || '',
+        territory_num: r.territory_num ?? null,
+        manzanas_done: r.manzanas_done || [],
+        all_territory: r.all_territory || false,
+        total_manzanas: r.total_manzanas || 0
+      };
+
+      // Include optional columns if present in the export
+      if (r.form_id)       payload.form_id       = r.form_id;
+      if (r.territory_id)  payload.territory_id  = r.territory_id;
+      if (r.not_covered)   payload.not_covered   = r.not_covered;
+      if (r.created_at)    payload.created_at    = r.created_at;
+
+      // Try with all fields first, fallback without optional ones
+      let res = await sb('territory_reports', { method:'POST', body: JSON.stringify(payload), prefer:'return=minimal' });
+
+      if (!res.ok) {
+        // Fallback: minimal payload without congregation (older schema)
+        const fallback = {
+          host_name: payload.host_name,
+          territory_num: payload.territory_num,
+          manzanas_done: payload.manzanas_done,
+          all_territory: payload.all_territory,
+          total_manzanas: payload.total_manzanas
+        };
+        if (r.form_id) fallback.form_id = r.form_id;
+        res = await sb('territory_reports', { method:'POST', body: JSON.stringify(fallback), prefer:'return=minimal' });
+      }
+
+      if (res.ok) {
+        inserted++;
+      } else {
+        errors.push(r.territory_num ?? r.territory_id ?? '?');
+      }
+    }
+
+    // Show result banner
+    const banner = document.getElementById('import-result-banner');
+    const resultText = document.getElementById('import-result-text');
+    let msg = '';
+    if (inserted > 0) {
+      msg += `${inserted} reporte${inserted !== 1 ? 's' : ''} importado${inserted !== 1 ? 's' : ''} ✓`;
+    }
+    if (skipped > 0) {
+      msg += (msg ? ' · ' : '') + `${skipped} ya existían, omitidos`;
+    }
+    if (errors.length > 0) {
+      msg += (msg ? ' · ' : '') + `${errors.length} con error`;
+      banner.style.background = 'var(--gold-pale)';
+      banner.style.borderColor = 'var(--gold)';
+      resultText.style.color = 'var(--gold)';
+      banner.querySelector('svg').setAttribute('stroke', 'var(--gold)');
+      banner.querySelector('button').style.color = 'var(--gold)';
+    } else {
+      banner.style.background = 'var(--green-pale)';
+      banner.style.borderColor = 'var(--green)';
+      resultText.style.color = 'var(--green)';
+      banner.querySelector('svg').setAttribute('stroke', 'var(--green)');
+      banner.querySelector('button').style.color = 'var(--green)';
+    }
+    resultText.textContent = msg || 'Sin cambios';
+    banner.classList.remove('hidden');
+
+    if (inserted > 0) {
+      loadReports();
+      loadDashboard();
+    }
+  } catch(e) {
+    toast('Error al leer el archivo. Intenta de nuevo.', 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir datos';
   }
 }
 
