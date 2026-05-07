@@ -104,7 +104,8 @@
   .btn-green { background: var(--green); color: #fff; }
   .btn-green:hover { background: #5dc98e; }
   .btn-danger { background: var(--red); color: #fff; }
-  .btn:disabled { opacity: 0.4; pointer-events: none; }
+  .btn:disabled { opacity: 0.45; pointer-events: none; }
+  #btn-continue:disabled { background: #e8194b; color: #fff; opacity: 0.4; }
 
   input, select, textarea {
     background: var(--surface2); border: 1px solid var(--border); color: var(--text);
@@ -280,25 +281,33 @@
   .host-welcome .btn { padding: 15px 40px; font-size: 15px; }
 
   .host-select {
-    flex: 1; display: flex; flex-direction: column; padding: 24px 20px;
-    animation: fadeUp 0.3s ease;
+    flex: 1; display: flex; flex-direction: column; padding: 0;
+    animation: fadeUp 0.3s ease; overflow: hidden;
   }
-  .host-select-header { margin-bottom: 20px; }
-  .host-select-header .territory-num {
-    width: 36px; height: 36px; background: var(--gold); border-radius: 10px;
+  .host-select-header {
+    padding: 28px 24px 16px;
+  }
+  .host-select-header .territory-title-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+  }
+  .host-select-header h2 {
+    font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; line-height: 1;
+  }
+  .host-territory-pill {
+    background: #e8194b; color: #fff;
+    border-radius: 50%; width: 36px; height: 36px; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 16px; color: #0f0f0f;
-    margin-bottom: 8px;
+    font-family: 'DM Serif Display', serif; font-size: 17px; font-weight: 700;
   }
-  .host-select-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; }
   .host-select-header p { color: var(--text-muted); font-size: 13px; }
 
   .svg-territory-container {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 20px; position: relative; overflow: hidden;
+    background: var(--surface); border-radius: 20px;
+    margin: 0 16px 16px; padding: 24px 16px; position: relative; overflow: hidden;
     flex: 1; display: flex; align-items: center; justify-content: center;
+    min-height: 220px;
   }
-  .svg-territory-container svg { max-width: 100%; max-height: 300px; }
+  .svg-territory-container svg { max-width: 100%; max-height: 260px; }
   .svg-territory-container svg .manzana-path {
     fill: var(--gold-dim); stroke: #0f0f0f; stroke-width: 2;
     cursor: pointer; transition: fill 0.15s;
@@ -313,7 +322,7 @@
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 18px; margin-bottom: 16px;
+    padding: 14px 18px; margin-bottom: 10px;
   }
   .toggle-row span { font-size: 14px; font-weight: 500; }
   .toggle {
@@ -328,8 +337,9 @@
   }
   .toggle.on::after { transform: translateX(18px); }
 
-  .host-actions { padding-top: 8px; }
-  .host-actions .btn { width: 100%; justify-content: center; padding: 15px; font-size: 15px; }
+  .host-actions { padding: 12px 16px 24px; }
+  .host-actions .btn { width: 100%; justify-content: center; padding: 17px; font-size: 15px; border-radius: 100px; }
+  .host-step-1-bottom { padding: 0 16px; }
 
   /* Step 2 - Confirm */
   .host-confirm {
@@ -655,7 +665,19 @@
   .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
   .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
 
-  /* ─── SIDEBAR congregation label ─── */
+  /* ─── HOST SCREEN overrides (new design) ─── */
+  #host-screen {
+    background: var(--bg);
+  }
+  #host-screen .btn-gold {
+    background: #e8194b;
+    color: #fff;
+  }
+  #host-screen .btn-gold:hover { background: #d01540; }
+  #host-screen .toggle.on { background: #e8194b; }
+  #host-screen .host-territory-pill { background: #e8194b; }
+  html.light #host-screen { background: #f0ede8; }
+  html.light #host-screen .svg-territory-container { background: #ffffff; }
   .sidebar-congregation {
     padding: 0 20px 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
     font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
@@ -1322,29 +1344,32 @@
 
   <div id="host-step-1" class="host-select hidden">
     <div class="host-select-header" style="padding-top:8px">
-      <div style="margin-bottom:4px">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:28px">Territorio <span id="host-sel-territory"></span></h2>
+      <div class="territory-title-row">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:28px">Territorio</h2>
+        <span class="host-territory-pill" id="host-territory-pill-num">4</span>
       </div>
       <p style="color:var(--text-muted);font-size:13px">Selecciona las manzanas abarcadas</p>
     </div>
 
     <div class="svg-territory-container" id="svg-container"></div>
 
-    <div class="toggle-row">
-      <span>Todo el territorio</span>
-      <div class="toggle" id="all-toggle" onclick="toggleAll()"></div>
-    </div>
-
-    <div class="toggle-row">
-      <div>
-        <span>No abarcado</span>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Enviar sin manzanas seleccionadas</div>
+    <div class="host-step-1-bottom">
+      <div class="toggle-row">
+        <span>Todo el territorio</span>
+        <div class="toggle" id="all-toggle" onclick="toggleAll()"></div>
       </div>
-      <div class="toggle" id="none-toggle" onclick="toggleNone()"></div>
+
+      <div class="toggle-row">
+        <div>
+          <span>No abarcado</span>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Enviar sin manzanas seleccionadas</div>
+        </div>
+        <div class="toggle" id="none-toggle" onclick="toggleNone()"></div>
+      </div>
     </div>
 
     <div class="host-actions">
-      <button class="btn btn-gold" id="btn-continue" onclick="hostStep(2)" disabled style="width:100%;justify-content:center;padding:15px;font-size:15px">
+      <button class="btn btn-gold" id="btn-continue" onclick="hostStep(2)" disabled style="width:100%;justify-content:center;padding:17px;font-size:15px;border-radius:100px">
         Continuar
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
@@ -3658,6 +3683,8 @@ function _doStartBonus(t) {
   noneSelected = false;
 
   document.getElementById('host-sel-territory').textContent = t.number;
+  const pillEl = document.getElementById('host-territory-pill-num');
+  if (pillEl) pillEl.textContent = t.number;
   document.getElementById('all-toggle').classList.remove('on');
   document.getElementById('none-toggle').classList.remove('on');
 
