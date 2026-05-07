@@ -128,9 +128,9 @@
   .login-logo {
     width: 56px; height: 56px; background: var(--gold); border-radius: 16px;
     display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
-    font-family: 'DM Serif Display', serif; font-size: 24px; color: #0f0f0f;
+    font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 700; color: #0f0f0f;
   }
-  .login-card h1 { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 6px; }
+  .login-card h1 { font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
   .login-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
   .login-card .btn { width: 100%; justify-content: center; margin-top: 16px; padding: 13px; }
   #login-error { color: var(--red); font-size: 13px; margin-top: 10px; }
@@ -148,9 +148,9 @@
   .sidebar-logo-icon {
     width: 34px; height: 34px; background: var(--gold); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 16px; color: #0f0f0f; flex-shrink: 0;
+    font-family: 'Instrument Sans', sans-serif; font-size: 14px; font-weight: 700; color: #0f0f0f; flex-shrink: 0;
   }
-  .sidebar-logo span { font-family: 'DM Serif Display', serif; font-size: 17px; }
+  .sidebar-logo span { font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 700; }
 
   .nav-item {
     display: flex; align-items: center; gap: 10px; padding: 10px 20px;
@@ -167,9 +167,9 @@
   .admin-panel.active { display: block; }
 
   .panel-title {
-    font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 4px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px;
   }
-  .panel-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  .panel-subtitle { color: var(--text-muted); font-size: 14px; font-weight: 400; margin-bottom: 32px; }
 
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
   .stat-card {
@@ -177,7 +177,7 @@
     padding: 20px; transition: border-color 0.15s;
   }
   .stat-card:hover { border-color: var(--gold-dim); }
-  .stat-num { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--gold); line-height: 1; }
+  .stat-num { font-family: 'Instrument Sans', sans-serif; font-size: 34px; font-weight: 700; color: var(--gold); line-height: 1; }
   .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
@@ -219,7 +219,7 @@
   }
   .form-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
   .form-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
-  .form-card-num { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 18px; color: #0f0f0f; }
+  .form-card-num { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 700; color: #0f0f0f; }
   .form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .form-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
   .form-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -283,11 +283,20 @@
     flex: 1; display: flex; flex-direction: column; padding: 0;
     animation: fadeUp 0.3s ease; overflow: hidden;
   }
-  .host-select-header {
+  /* The white card: covers header + svg map + toggles */
+  .host-select-card {
     background: var(--surface);
-    border-radius: 0 0 24px 24px;
-    padding: 52px 24px 20px;
-    margin-bottom: 4px;
+    border-radius: 0 0 28px 28px;
+    padding: 52px 20px 20px;
+    margin-bottom: 0;
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .host-select-header {
+    padding: 0 4px 16px;
     position: relative;
   }
   .host-select-header .territory-title-row {
@@ -304,10 +313,9 @@
   .host-select-header p { color: var(--text-muted); font-size: 13px; font-weight: 400; }
 
   .svg-territory-container {
-    background: var(--surface); border-radius: 20px;
-    margin: 0 16px 16px; padding: 24px 16px; position: relative; overflow: hidden;
     flex: 1; display: flex; align-items: center; justify-content: center;
-    min-height: 220px;
+    padding: 8px 0 16px; position: relative; overflow: hidden;
+    min-height: 200px;
   }
   .svg-territory-container svg { max-width: 100%; max-height: 260px; }
   .svg-territory-container svg .manzana-path {
@@ -317,14 +325,14 @@
   .svg-territory-container svg .manzana-path:hover { fill: #d4a53e; }
   .svg-territory-container svg .manzana-path.selected { fill: var(--green); }
   .svg-territory-container svg .manzana-label {
-    fill: #0f0f0f; font-family: 'DM Serif Display', serif; font-size: 14px;
-    font-weight: bold; pointer-events: none; text-anchor: middle; dominant-baseline: central;
+    fill: #0f0f0f; font-family: 'Instrument Sans', sans-serif; font-size: 13px;
+    font-weight: 700; pointer-events: none; text-anchor: middle; dominant-baseline: central;
   }
 
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 18px; margin-bottom: 10px;
+    border-top: 1px solid var(--border);
+    padding: 13px 4px; margin-bottom: 0;
   }
   .toggle-row span { font-size: 14px; font-weight: 500; }
   .toggle {
@@ -339,9 +347,9 @@
   }
   .toggle.on::after { transform: translateX(18px); }
 
-  .host-actions { padding: 12px 16px 24px; }
-  .host-actions .btn { width: 100%; justify-content: center; padding: 17px; font-size: 15px; border-radius: 100px; }
-  .host-step-1-bottom { padding: 0 16px; }
+  .host-actions { padding: 16px 20px 32px; }
+  .host-actions .btn { width: 100%; justify-content: center; padding: 17px; font-size: 15px; font-weight: 600; border-radius: 100px; }
+  .host-step-1-bottom { padding: 0; }
 
   /* Step 2 - Confirm */
   .host-confirm {
@@ -357,7 +365,7 @@
   .confirm-summary .territory-num-sm {
     width: 32px; height: 32px; background: var(--gold); border-radius: 9px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 14px; color: #0f0f0f; margin-bottom: 10px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 700; color: #0f0f0f; margin-bottom: 10px;
   }
   .confirm-summary h3 { font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
   .confirm-summary .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
@@ -392,7 +400,7 @@
     padding: 32px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
     animation: scaleIn 0.25s ease;
   }
-  .modal h2 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 6px; }
+  .modal h2 { font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 6px; }
   .modal p { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; }
 
@@ -566,9 +574,9 @@
   .accounts-logo {
     width: 56px; height: 56px; background: var(--gold); border-radius: 16px;
     display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
-    font-family: 'DM Serif Display', serif; font-size: 22px; color: #0f0f0f;
+    font-family: 'Instrument Sans', sans-serif; font-size: 18px; font-weight: 700; color: #0f0f0f;
   }
-  .accounts-card h1 { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 6px; }
+  .accounts-card h1 { font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
   .accounts-card > p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
   .accounts-tabs {
     display: flex; background: var(--surface2); border-radius: 100px; padding: 3px; gap: 2px; margin-bottom: 28px;
@@ -589,7 +597,7 @@
   .account-avatar {
     width: 38px; height: 38px; border-radius: 10px; background: var(--gold);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 16px; color: #0f0f0f; flex-shrink: 0;
+    font-family: 'Instrument Sans', sans-serif; font-size: 16px; color: #0f0f0f; flex-shrink: 0;
   }
   .account-info { flex: 1; min-width: 0; }
   .account-name { font-size: 14px; font-weight: 600; }
@@ -665,7 +673,7 @@
     align-items: center; justify-content: center; transition: all 0.15s;
   }
   .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
+  .cal-month-label { font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; }
 
   /* ─── HOST SCREEN overrides (new design) ─── */
   html.light #host-screen { background: #f0ede8; }
@@ -705,7 +713,7 @@
     width: 36px; height: 36px; border-radius: 50%;
     background: var(--gold); color: #0f0f0f;
     display: flex; align-items: center; justify-content: center;
-    font-family: "DM Serif Display", serif; font-size: 15px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 14px;
     font-weight: 700; flex-shrink: 0; overflow: hidden;
   }
 
@@ -734,7 +742,7 @@
     width: 34px; height: 34px; border-radius: 50%;
     background: var(--gold); color: #0f0f0f;
     display: flex; align-items: center; justify-content: center;
-    font-family: "DM Serif Display", serif; font-size: 14px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 13px;
     font-weight: 700; overflow: hidden;
     border: 2px solid var(--border);
     transition: border-color 0.15s;
@@ -1111,7 +1119,7 @@
         <div class="stat-card" style="grid-column:1/-1" id="stat-weakest-card">
           <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Territorio más incompleto</div>
           <div style="display:flex;align-items:center;gap:12px">
-            <div id="stat-weakest-badge" style="width:44px;height:44px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;color:#fff;flex-shrink:0">–</div>
+            <div id="stat-weakest-badge" style="width:44px;height:44px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:20px;color:#fff;flex-shrink:0">–</div>
             <div style="flex:1;min-width:0">
               <div id="stat-weakest-name" style="font-size:14px;font-weight:600;margin-bottom:4px">–</div>
               <div style="display:flex;align-items:center;gap:8px">
@@ -1346,38 +1354,39 @@
   </button>
 
   <div id="host-step-1" class="host-select hidden">
-    <div class="host-select-header">
-      <!-- Theme button lives inside the header card -->
-      <button class="host-theme-btn-inline" onclick="toggleTheme()" title="Cambiar tema">
-        <svg id="host-theme-icon-step1" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"></svg>
-      </button>
-      <div class="territory-title-row">
-        <h2>Territorio</h2>
-        <span class="host-territory-pill" id="host-territory-pill-num">4</span>
-        <span id="host-sel-territory" style="display:none"></span>
-      </div>
-      <p>Selecciona las manzanas abarcadas</p>
-    </div>
-
-    <div class="svg-territory-container" id="svg-container"></div>
-
-    <div class="host-step-1-bottom">
-      <div class="toggle-row">
-        <span>Todo el territorio</span>
-        <div class="toggle" id="all-toggle" onclick="toggleAll()"></div>
-      </div>
-
-      <div class="toggle-row">
-        <div>
-          <span>No abarcado</span>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Enviar sin manzanas seleccionadas</div>
+    <div class="host-select-card">
+      <div class="host-select-header">
+        <!-- Theme button lives inside the header card -->
+        <button class="host-theme-btn-inline" onclick="toggleTheme()" title="Cambiar tema">
+          <svg id="host-theme-icon-step1" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"></svg>
+        </button>
+        <div class="territory-title-row">
+          <h2>Territorio</h2>
+          <span class="host-territory-pill" id="host-territory-pill-num">4</span>
+          <span id="host-sel-territory" style="display:none"></span>
         </div>
-        <div class="toggle" id="none-toggle" onclick="toggleNone()"></div>
+        <p>Selecciona las manzanas abarcadas</p>
+      </div>
+
+      <div class="svg-territory-container" id="svg-container"></div>
+
+      <div class="host-step-1-bottom">
+        <div class="toggle-row">
+          <span>Todo el territorio</span>
+          <div class="toggle" id="all-toggle" onclick="toggleAll()"></div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <span>No abarcado</span>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Enviar sin manzanas seleccionadas</div>
+          </div>
+          <div class="toggle" id="none-toggle" onclick="toggleNone()"></div>
+        </div>
       </div>
     </div>
 
     <div class="host-actions">
-      <button class="btn btn-gold" id="btn-continue" onclick="hostStep(2)" disabled style="width:100%;justify-content:center;padding:17px;font-size:15px;border-radius:100px">
+      <button class="btn btn-gold" id="btn-continue" onclick="hostStep(2)" disabled style="width:100%;justify-content:center;padding:17px;font-size:15px;font-weight:600;border-radius:100px">
         Continuar
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
@@ -1473,7 +1482,7 @@
     </div>
     <!-- Photo upload -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-      <div id="prof-photo-preview" style="width:60px;height:60px;border-radius:50%;background:var(--gold);color:#0f0f0f;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:24px;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid var(--border);transition:border-color .15s" onclick="document.getElementById('prof-photo-input').click()" title="Cambiar foto">
+      <div id="prof-photo-preview" style="width:60px;height:60px;border-radius:50%;background:var(--gold);color:#0f0f0f;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:24px;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid var(--border);transition:border-color .15s" onclick="document.getElementById('prof-photo-input').click()" title="Cambiar foto">
         <span id="prof-photo-initials"></span>
         <img id="prof-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;">
       </div>
@@ -2396,7 +2405,7 @@ async function loadDashboard() {
     return `
     <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;transition:border-color .15s"
       onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="width:38px;height:38px;border-radius:10px;background:var(--gold-pale);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:var(--gold);flex-shrink:0">${tNum}</div>
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gold-pale);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:16px;color:var(--gold);flex-shrink:0">${tNum}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.host_name}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${formatDate(dateStr)}</div>
@@ -2687,7 +2696,7 @@ function renderReportTiles(allManzanas, doneManzanas, allDone) {
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
     ${allManzanas.map(m => {
       const done = allDone || doneManzanas.has(m.toLowerCase());
-      return `<div style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:18px;font-weight:bold;
+      return `<div style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:18px;font-weight:700;
         background:${done ? 'var(--green)' : 'rgba(196,154,46,0.2)'};
         color:${done ? '#fff' : 'rgba(196,154,46,0.5)'};
         border:2px solid ${done ? 'var(--green)' : 'rgba(196,154,46,0.3)'}">
