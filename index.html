@@ -128,9 +128,9 @@
   .login-logo {
     width: 56px; height: 56px; background: var(--gold); border-radius: 16px;
     display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
-    font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 800; color: #0f0f0f;
+    font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 700; color: #0f0f0f;
   }
-  .login-card h1 { font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .login-card h1 { font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
   .login-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
   .login-card .btn { width: 100%; justify-content: center; margin-top: 16px; padding: 13px; }
   #login-error { color: var(--red); font-size: 13px; margin-top: 10px; }
@@ -148,9 +148,9 @@
   .sidebar-logo-icon {
     width: 34px; height: 34px; background: var(--gold); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Instrument Sans', sans-serif; font-size: 14px; font-weight: 800; color: #0f0f0f; flex-shrink: 0;
+    font-family: 'Instrument Sans', sans-serif; font-size: 14px; font-weight: 700; color: #0f0f0f; flex-shrink: 0;
   }
-  .sidebar-logo span { font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 800; }
+  .sidebar-logo span { font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 700; }
 
   .nav-item {
     display: flex; align-items: center; gap: 10px; padding: 10px 20px;
@@ -167,7 +167,7 @@
   .admin-panel.active { display: block; }
 
   .panel-title {
-    font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 4px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px;
   }
   .panel-subtitle { color: var(--text-muted); font-size: 14px; font-weight: 400; margin-bottom: 32px; }
 
@@ -177,7 +177,7 @@
     padding: 20px; transition: border-color 0.15s;
   }
   .stat-card:hover { border-color: var(--gold-dim); }
-  .stat-num { font-family: 'Instrument Sans', sans-serif; font-size: 34px; font-weight: 800; color: var(--gold); line-height: 1; }
+  .stat-num { font-family: 'Instrument Sans', sans-serif; font-size: 34px; font-weight: 700; color: var(--gold); line-height: 1; }
   .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
@@ -219,7 +219,7 @@
   }
   .form-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
   .form-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
-  .form-card-num { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 800; color: #0f0f0f; }
+  .form-card-num { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 700; color: #0f0f0f; }
   .form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .form-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
   .form-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -287,13 +287,11 @@
   .host-select-card {
     background: var(--surface);
     border-radius: 0 0 28px 28px;
-    padding: 52px 20px 20px;
-    margin-bottom: 0;
+    padding: 52px 20px 4px;
     position: relative;
-    flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    flex: 1;
   }
   .host-select-header {
     padding: 0 4px 16px;
@@ -3588,6 +3586,7 @@ function startReporting(num) {
   document.getElementById('host-step-0').classList.add('hidden');
   document.getElementById('host-step-1').classList.remove('hidden');
   document.getElementById('host-step-2').classList.add('hidden');
+  document.getElementById('host-theme-btn')?.classList.add('hidden');
 
   // Show back button only for multi-territory links
   const backBtn = document.getElementById('host-back-btn');
@@ -3603,6 +3602,10 @@ function startReporting(num) {
 
 function hostStep(step) {
   [0,1,2,3].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
+
+  // Floating theme FAB: hide on step 1 (has inline btn in card), show elsewhere
+  const themeFab = document.getElementById('host-theme-btn');
+  if (themeFab) themeFab.classList.toggle('hidden', step === 1);
 
   // Back button: visible on steps 1 & 2 for multi-territory, and on step 3 always (goes to all-done)
   const nums = hostFormData?._slotKeys || hostFormData?.territory_nums || (hostFormData?.territory_num ? [hostFormData.territory_num] : []);
@@ -3728,6 +3731,7 @@ function _doStartBonus(t) {
 
   [0,2,3].forEach(s => document.getElementById(`host-step-${s}`)?.classList.add('hidden'));
   document.getElementById('host-step-1').classList.remove('hidden');
+  document.getElementById('host-theme-btn')?.classList.add('hidden');
 
   // Back button goes back to territory picker
   const backBtn = document.getElementById('host-back-btn');
