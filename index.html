@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Territory Reporter 5.2.2-beta</title>
+<title>Territory Reporter v.5.2.3-beta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -644,16 +644,15 @@
 
   /* ─── MONTHLY CALENDAR ─── */
   .cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 0;
-    max-width: 380px; margin-left: auto; margin-right: auto;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 0;
   }
   .cal-day-label {
     text-align: center; font-size: 10px; color: var(--text-dim); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 6px;
   }
   .cal-day {
-    aspect-ratio: 1; border-radius: 7px; display: flex; align-items: center;
-    justify-content: center; font-size: 11px; font-weight: 500; position: relative;
+    aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 500; position: relative;
     cursor: default; transition: background 0.15s;
   }
   .cal-day.empty { background: transparent; }
@@ -664,20 +663,19 @@
   }
   .cal-day.has-activity:hover { background: var(--gold); color: #0f0f0f; }
   .cal-day .cal-dot {
-    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
-    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+    position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
   }
   .cal-nav {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
-    max-width: 380px; margin-left: auto; margin-right: auto;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
   }
   .cal-nav-btn {
-    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border);
     background: transparent; color: var(--text-muted); cursor: pointer; display: flex;
     align-items: center; justify-content: center; transition: all 0.15s;
   }
   .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 15px; }
+  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
 
   /* ─── SIDEBAR congregation label ─── */
   .sidebar-congregation {
@@ -1032,7 +1030,7 @@
           Mostrar calendario
         </button>
       </div>
-      <div id="cal-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:24px;display:inline-block;width:auto">
+      <div id="cal-panel" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
         <div class="cal-nav">
           <button class="cal-nav-btn" onclick="calPrevMonth()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2252,10 +2250,20 @@ async function saveTerritory() {
   // Duplicate numbers are allowed — different territories can share the same number
 
   const payload = { number: num, name, manzanas: currentManzanas, svg_data: currentSvgData };
-  // Try to include congregation if the column exists
   const payloadWithCong = { ...payload, congregation: getCong() };
 
   try {
+    // Check for duplicate number (only when creating a new territory)
+    if (!currentTerritoryId) {
+      const checkRes = await sb(`territories?number=eq.${num}&select=id`, { method:'GET' });
+      const existing = await checkRes.json();
+      if (Array.isArray(existing) && existing.length > 0) {
+        toast(`Ya existe un Territorio con el número ${num}. Usá otro número.`, 'error');
+        numInput.focus();
+        return;
+      }
+    }
+
     let res;
     if (currentTerritoryId) {
       res = await sb(`territories?id=eq.${currentTerritoryId}`, { method:'PATCH', body: JSON.stringify(payloadWithCong), prefer:'return=minimal' });
