@@ -394,7 +394,10 @@
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
- 
+  /* ─── MOBILE TOP BAR ─── */
+  .mobile-topbar {
+    display: none;
+  }
 
   /* ─── MOBILE BOTTOM NAV ─── */
   .mobile-bottomnav {
@@ -408,7 +411,18 @@
     #admin-screen { flex-direction: column; }
 
     /* Show mobile top bar */
-    
+    .mobile-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      box-shadow: 0 1px 12px rgba(0,0,0,0.12);
+    }
 
     /* Show mobile bottom nav */
     .mobile-bottomnav {
@@ -466,6 +480,7 @@
 
   @media (max-width: 480px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .mobile-topbar { padding: 10px 14px; }
   }
 
   /* ─── EMPTY STATE ─── */
