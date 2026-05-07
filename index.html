@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Territory Reporter v.5.2.3-beta</title>
+<title>Territory Reporter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -2253,17 +2253,6 @@ async function saveTerritory() {
   const payloadWithCong = { ...payload, congregation: getCong() };
 
   try {
-    // Check for duplicate number (only when creating a new territory)
-    if (!currentTerritoryId) {
-      const checkRes = await sb(`territories?number=eq.${num}&select=id`, { method:'GET' });
-      const existing = await checkRes.json();
-      if (Array.isArray(existing) && existing.length > 0) {
-        toast(`Ya existe un Territorio con el número ${num}. Usá otro número.`, 'error');
-        numInput.focus();
-        return;
-      }
-    }
-
     let res;
     if (currentTerritoryId) {
       res = await sb(`territories?id=eq.${currentTerritoryId}`, { method:'PATCH', body: JSON.stringify(payloadWithCong), prefer:'return=minimal' });
