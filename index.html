@@ -15,8 +15,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
-<link rel="manifest" href="icon/site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="manifest" href="icon/site.webmanifest"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -3774,7 +3773,7 @@ async function submitReport() {
 // ── PWA: Registro del Service Worker ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('./sw.js', { scope: '/' })
       .then(reg => console.log('[PWA] Service Worker registrado:', reg.scope))
       .catch(err => console.warn('[PWA] Error al registrar SW:', err));
   });
