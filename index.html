@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Territorios</title>
+<title>Territory Reporter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -559,17 +559,250 @@
 
   /* Per-territory accent color — set dynamically via JS on the host-screen element */
   #host-screen { --territory-color: var(--gold); }
+
+  /* ─── ACCOUNT / CONGREGATION SYSTEM ─── */
+  #accounts-screen {
+    min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
+  }
+  .accounts-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 48px 40px; width: 100%; max-width: 400px; text-align: center;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5); animation: fadeUp 0.4s ease;
+  }
+  @media (max-width: 480px) {
+    .accounts-card { padding: 36px 24px; }
+  }
+  .accounts-logo {
+    width: 56px; height: 56px; background: var(--gold); border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
+    font-family: 'DM Serif Display', serif; font-size: 22px; color: #0f0f0f;
+  }
+  .accounts-card h1 { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 6px; }
+  .accounts-card > p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  .accounts-tabs {
+    display: flex; background: var(--surface2); border-radius: 100px; padding: 3px; gap: 2px; margin-bottom: 28px;
+  }
+  .accounts-tab {
+    flex: 1; padding: 8px; border: none; border-radius: 100px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600;
+    transition: all 0.18s; background: transparent; color: var(--text-muted);
+  }
+  .accounts-tab.active { background: var(--gold); color: #0f0f0f; }
+  .account-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; text-align: left; }
+  .account-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .account-item:hover { border-color: var(--gold); background: var(--gold-pale); }
+  .account-avatar {
+    width: 38px; height: 38px; border-radius: 10px; background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 16px; color: #0f0f0f; flex-shrink: 0;
+  }
+  .account-info { flex: 1; min-width: 0; }
+  .account-name { font-size: 14px; font-weight: 600; }
+  .account-congregation { font-size: 12px; color: var(--text-muted); }
+  .account-arrow { color: var(--text-dim); }
+  #accounts-login-form, #accounts-register-form { text-align: left; }
+  #accounts-login-form .btn, #accounts-register-form .btn { width: 100%; justify-content: center; margin-top: 8px; padding: 13px; }
+  #acc-error, #reg-error { color: var(--red); font-size: 13px; margin-top: 8px; }
+  .acc-divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; color: var(--text-dim); font-size: 12px; }
+  .acc-divider::before, .acc-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .congregation-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; background: var(--gold-pale); border: 1px solid var(--gold-dim);
+    border-radius: 100px; font-size: 12px; color: var(--gold); font-weight: 600; margin-bottom: 20px;
+  }
+
+  /* ─── TERRITORY HISTORY MODAL ─── */
+  #territory-history-modal .modal { max-width: 540px; }
+  .history-entry {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-entry:last-child { border-bottom: none; }
+  .history-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+    flex-shrink: 0; margin-top: 5px;
+  }
+  .history-meta { flex: 1; }
+  .history-date { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .history-who { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .history-coverage { font-size: 12px; }
+
+  /* ─── REPORTS GRID (new layout) ─── */
+  .reports-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1100px) { .reports-grid-4 { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 768px) { .reports-grid-4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .reports-grid-4 { grid-template-columns: 1fr; } }
+
+  /* ─── MONTHLY CALENDAR ─── */
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 0;
+  }
+  .cal-day-label {
+    text-align: center; font-size: 10px; color: var(--text-dim); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 6px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 500; position: relative;
+    cursor: default; transition: background 0.15s;
+  }
+  .cal-day.empty { background: transparent; }
+  .cal-day.inactive { color: var(--text-dim); }
+  .cal-day.has-activity {
+    background: var(--gold-pale); color: var(--gold); font-weight: 700; cursor: pointer;
+    border: 1px solid var(--gold-dim);
+  }
+  .cal-day.has-activity:hover { background: var(--gold); color: #0f0f0f; }
+  .cal-day .cal-dot {
+    position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+  }
+  .cal-nav {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .cal-nav-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; }
+
+  /* ─── SIDEBAR congregation label ─── */
+  .sidebar-congregation {
+    padding: 0 20px 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* ─── MOBILE: reports panel fix ─── */
+  @media (max-width: 768px) {
+    .reports-grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 400px) {
+    .reports-grid-4 { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════════════
+     ACCOUNTS SCREEN (new — congregation system)
+════════════════════════════════════════ -->
+<div id="accounts-screen" class="hidden">
+  <div class="accounts-card">
+    <div class="accounts-logo">TR</div>
+    <h1>Territory Reporter</h1>
+    <p>Selecciona una cuenta o crea la tuya</p>
+
+    <!-- Tab switcher -->
+    <div class="accounts-tabs">
+      <button class="accounts-tab active" id="acc-tab-select" onclick="switchAccTab('select')">Mis cuentas</button>
+      <button class="accounts-tab" id="acc-tab-login" onclick="switchAccTab('login')">Ingresar</button>
+      <button class="accounts-tab" id="acc-tab-register" onclick="switchAccTab('register')">Registrarse</button>
+    </div>
+
+    <!-- Select account (list of saved accounts) -->
+    <div id="acc-panel-select">
+      <div class="account-list" id="saved-accounts-list">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">
+          No hay cuentas guardadas
+        </div>
+      </div>
+      <div class="acc-divider">o</div>
+      <button class="btn btn-ghost" onclick="switchAccTab('login')" style="width:100%;justify-content:center">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Ingresar con otra cuenta
+      </button>
+    </div>
+
+    <!-- Login panel -->
+    <div id="acc-panel-login" class="hidden">
+      <div id="accounts-login-form">
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" id="acc-login-username" placeholder="tu_usuario" autocomplete="username" autocapitalize="none">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="acc-login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="acc-error" class="hidden"></div>
+        <button class="btn btn-gold" onclick="doAccountLogin()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Ingresar
+        </button>
+        <div class="acc-divider">¿no tienes cuenta?</div>
+        <button class="btn btn-ghost" onclick="switchAccTab('register')" style="width:100%;justify-content:center">Crear cuenta nueva</button>
+      </div>
+    </div>
+
+    <!-- Register panel -->
+    <div id="acc-panel-register" class="hidden">
+      <div id="accounts-register-form">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="reg-name" placeholder="Tu nombre">
+        </div>
+        <div class="form-group">
+          <label>Nombre de congregación</label>
+          <input type="text" id="reg-congregation" placeholder="Ej: Congregación Norte">
+        </div>
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" id="reg-username" placeholder="usuario_sin_espacios" autocapitalize="none">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div id="reg-error" class="hidden"></div>
+        <button class="btn btn-gold" onclick="doAccountRegister()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Crear cuenta
+        </button>
+        <div class="acc-divider">¿ya tienes cuenta?</div>
+        <button class="btn btn-ghost" onclick="switchAccTab('login')" style="width:100%;justify-content:center">Ingresar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TERRITORY HISTORY MODAL
+════════════════════════════════════════ -->
+<div id="territory-history-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h2 id="thm-title">Historial del territorio</h2>
+      <button onclick="closeModal('territory-history-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:0">×</button>
+    </div>
+    <p id="thm-subtitle">Veces trabajado, fechas y publicadores</p>
+    <div id="thm-content" style="max-height:50vh;overflow-y:auto">
+      <div class="empty-state"><div class="spinner"></div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('territory-history-modal')">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════
      LOGIN SCREEN
 ════════════════════════════════════════ -->
 <div id="login-screen" class="hidden">
   <div class="login-card">
-    <div class="login-logo">T</div>
-    <h1>Territorios</h1>
+    <div class="login-logo">TR</div>
+    <h1>Territory Reporter</h1>
     <p>Panel de administración</p>
     <div class="form-group">
       <label>Contraseña</label>
@@ -588,8 +821,11 @@
   <!-- ── MOBILE TOP BAR (visible only on mobile) ── -->
   <header class="mobile-topbar">
     <div class="mobile-topbar-logo">
-      <div class="mobile-topbar-icon">T</div>
-      <span class="mobile-topbar-title">Territorios</span>
+      <div class="mobile-topbar-icon">TR</div>
+      <div>
+        <span class="mobile-topbar-title">Territory Reporter</span>
+        <div style="font-size:10px;color:var(--text-muted)" id="mobile-congregation-label"></div>
+      </div>
     </div>
     <div class="mobile-topbar-actions">
       <button class="mobile-topbar-btn" onclick="toggleTheme()" title="Cambiar tema" id="mobile-theme-btn">
@@ -632,9 +868,10 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">T</div>
-      <span>Territorios</span>
+      <div class="sidebar-logo-icon">TR</div>
+      <span>Territory Reporter</span>
     </div>
+    <div class="sidebar-congregation" id="sidebar-congregation-label"></div>
     <a class="nav-item active" onclick="showPanel('dashboard')" data-panel="dashboard">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
@@ -774,14 +1011,43 @@
 
     <!-- ── REPORTS ── -->
     <div id="panel-reports" class="admin-panel">
-      <p class="panel-title">Reportes</p>
-      <p class="panel-subtitle">Respuestas recibidas de los publicadores</p>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <span id="reports-count" style="font-size:13px;color:var(--text-muted)"></span>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+        <div>
+          <p class="panel-title" style="margin-bottom:4px">Reportes</p>
+          <p class="panel-subtitle" style="margin-bottom:0">Respuestas recibidas de los publicadores</p>
+        </div>
         <button class="btn btn-ghost" onclick="loadReports()" style="padding:7px 14px;font-size:12px">↺ Actualizar</button>
       </div>
-      <div id="reports-cards">
-        <div style="text-align:center;padding:60px;color:var(--text-muted)"><div class="spinner"></div></div>
+
+      <!-- Monthly calendar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calPrevMonth()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cal-month-label" id="cal-month-label">Mayo 2026</span>
+          <button class="cal-nav-btn" onclick="calNextMonth()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="cal-grid" id="cal-grid-days-labels">
+          <div class="cal-day-label">Lu</div>
+          <div class="cal-day-label">Ma</div>
+          <div class="cal-day-label">Mi</div>
+          <div class="cal-day-label">Ju</div>
+          <div class="cal-day-label">Vi</div>
+          <div class="cal-day-label">Sá</div>
+          <div class="cal-day-label">Do</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <span id="reports-count" style="font-size:13px;color:var(--text-muted)"></span>
+        <span id="reports-filter-label" style="font-size:12px;color:var(--gold);font-weight:600"></span>
+      </div>
+      <div id="reports-cards" class="reports-grid-4">
+        <div style="text-align:center;padding:60px;color:var(--text-muted);grid-column:1/-1"><div class="spinner"></div></div>
       </div>
     </div>
 
@@ -793,16 +1059,6 @@
           <p class="panel-subtitle" style="margin-bottom:0" id="territories-subtitle">Cargando...</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:3px;gap:2px">
-            <button id="filter-btn-number" onclick="setTerritoryFilter('number')"
-              style="border:none;cursor:pointer;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;font-family:'Instrument Sans',sans-serif;transition:all .15s;background:var(--gold);color:#0f0f0f">
-              # Número
-            </button>
-            <button id="filter-btn-frequency" onclick="setTerritoryFilter('frequency')"
-              style="border:none;cursor:pointer;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;font-family:'Instrument Sans',sans-serif;transition:all .15s;background:transparent;color:var(--text-muted)">
-              ↻ Frecuencia
-            </button>
-          </div>
           <button class="btn btn-gold" onclick="openTerritoryModal(null)">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Añadir territorio
@@ -1057,18 +1313,32 @@ const params = new URLSearchParams(location.search);
 const viewParam = params.get('view');
 const tokenParam = params.get('token');
 
+// Current active account
+let currentAccount = null;
+
 window.addEventListener('load', () => {
   initTheme();
   if (tokenParam) {
     initHostScreen(tokenParam);
   } else if (viewParam === 'admin' || !tokenParam) {
-    if (sessionStorage.getItem('admin_auth') === 'yes') {
+    // Check for active account session first
+    const savedSession = sessionStorage.getItem('active_account');
+    if (savedSession) {
+      try {
+        currentAccount = JSON.parse(savedSession);
+        showAdmin();
+      } catch(e) {
+        showAccountsScreen();
+      }
+    } else if (sessionStorage.getItem('admin_auth') === 'yes') {
+      // Legacy: password-only login — create a legacy account object
+      currentAccount = { name: 'Administrador', username: 'admin', congregation: 'Mi Congregación', isLegacy: true };
       showAdmin();
     } else {
-      show('login-screen');
+      showAccountsScreen();
     }
   } else {
-    show('login-screen');
+    showAccountsScreen();
   }
 });
 
@@ -1076,7 +1346,7 @@ window.addEventListener('load', () => {
 // UTILS
 // ════════════════════════════════════════
 function show(id) {
-  ['login-screen','admin-screen','host-screen'].forEach(s => {
+  ['login-screen','admin-screen','host-screen','accounts-screen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
@@ -1103,7 +1373,123 @@ function formatDate(d) {
 }
 
 // ════════════════════════════════════════
-// LOGIN
+// ACCOUNTS SYSTEM
+// ════════════════════════════════════════
+const ACCOUNTS_KEY = 'tr_accounts_v1';
+
+function getStoredAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveAccounts(accounts) {
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function showAccountsScreen() {
+  show('accounts-screen');
+  renderSavedAccounts();
+  // Keyboard shortcuts
+  document.getElementById('acc-login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAccountLogin();
+  });
+}
+
+function renderSavedAccounts() {
+  const accounts = getStoredAccounts();
+  const el = document.getElementById('saved-accounts-list');
+  if (!accounts.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">
+      No hay cuentas guardadas. <span style="color:var(--gold);cursor:pointer" onclick="switchAccTab('register')">Crea la primera</span>
+    </div>`;
+    return;
+  }
+  el.innerHTML = accounts.map((acc, i) => `
+    <div class="account-item" onclick="quickLoginAccount(${i})">
+      <div class="account-avatar">${acc.name.charAt(0).toUpperCase()}</div>
+      <div class="account-info">
+        <div class="account-name">${acc.name}</div>
+        <div class="account-congregation">${acc.congregation}</div>
+      </div>
+      <svg class="account-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  `).join('');
+}
+
+function quickLoginAccount(idx) {
+  const accounts = getStoredAccounts();
+  if (!accounts[idx]) return;
+  currentAccount = accounts[idx];
+  sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
+  showAdmin();
+}
+
+function switchAccTab(tab) {
+  ['select','login','register'].forEach(t => {
+    document.getElementById(`acc-tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`acc-panel-${t}`).classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'login') setTimeout(() => document.getElementById('acc-login-username').focus(), 50);
+  if (tab === 'register') setTimeout(() => document.getElementById('reg-name').focus(), 50);
+}
+
+function doAccountLogin() {
+  const username = document.getElementById('acc-login-username').value.trim().toLowerCase();
+  const password = document.getElementById('acc-login-password').value;
+  const errEl = document.getElementById('acc-error');
+  errEl.classList.add('hidden');
+
+  if (!username || !password) { errEl.textContent = 'Completa usuario y contraseña'; errEl.classList.remove('hidden'); return; }
+
+  const accounts = getStoredAccounts();
+  const found = accounts.find(a => a.username === username && a.password === btoa(password));
+
+  if (!found) {
+    errEl.textContent = 'Usuario o contraseña incorrectos';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  currentAccount = found;
+  sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
+  document.getElementById('acc-login-password').value = '';
+  showAdmin();
+}
+
+function doAccountRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const congregation = document.getElementById('reg-congregation').value.trim();
+  const username = document.getElementById('reg-username').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const password = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('reg-error');
+  errEl.classList.add('hidden');
+
+  if (!name || !congregation || !username || !password) {
+    errEl.textContent = 'Completa todos los campos'; errEl.classList.remove('hidden'); return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.classList.remove('hidden'); return;
+  }
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    errEl.textContent = 'El usuario solo puede tener letras, números y _'; errEl.classList.remove('hidden'); return;
+  }
+
+  const accounts = getStoredAccounts();
+  if (accounts.find(a => a.username === username)) {
+    errEl.textContent = 'Ese nombre de usuario ya existe'; errEl.classList.remove('hidden'); return;
+  }
+
+  const newAccount = { name, congregation, username, password: btoa(password), createdAt: new Date().toISOString() };
+  accounts.push(newAccount);
+  saveAccounts(accounts);
+
+  currentAccount = newAccount;
+  sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
+  toast('¡Cuenta creada!');
+  showAdmin();
+}
+
+// ════════════════════════════════════════
+// LOGIN (legacy password — kept for backward compat)
 // ════════════════════════════════════════
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) doLogin();
@@ -1113,6 +1499,8 @@ function doLogin() {
   const pw = document.getElementById('login-password').value;
   if (pw === ADMIN_PASSWORD) {
     sessionStorage.setItem('admin_auth','yes');
+    currentAccount = { name: 'Administrador', username: 'admin', congregation: 'Mi Congregación', isLegacy: true };
+    sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
     showAdmin();
   } else {
     const err = document.getElementById('login-error');
@@ -1123,6 +1511,8 @@ function doLogin() {
 
 function doLogout() {
   sessionStorage.removeItem('admin_auth');
+  sessionStorage.removeItem('active_account');
+  currentAccount = null;
   location.reload();
 }
 
@@ -1131,6 +1521,12 @@ function doLogout() {
 // ════════════════════════════════════════
 function showAdmin() {
   show('admin-screen');
+  // Show congregation in sidebar and mobile topbar
+  const congLabel = currentAccount?.congregation || '';
+  const sidebarEl = document.getElementById('sidebar-congregation-label');
+  const mobileEl = document.getElementById('mobile-congregation-label');
+  if (sidebarEl) sidebarEl.textContent = congLabel;
+  if (mobileEl) mobileEl.textContent = congLabel;
   loadDashboard();
   loadForms();
   loadReports();
@@ -1311,182 +1707,162 @@ function copyLink(link) {
 }
 
 // ── REPORTS ──
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+let allReportsData = []; // cached for calendar
+let calFilterDate = null; // null = show all, string = filter by date
+
+const MONTHS_FULL_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function calPrevMonth() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function calNextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+
+function renderCalendar() {
+  const label = document.getElementById('cal-month-label');
+  if (label) label.textContent = `${MONTHS_FULL_ES[calMonth]} ${calYear}`;
+
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+
+  // Count reports per date for this month
+  const countByDate = {};
+  allReportsData.forEach(r => {
+    const d = r.created_at?.split('T')[0];
+    if (d) countByDate[d] = (countByDate[d] || 0) + 1;
+  });
+
+  // First day of month (0=Sun, 1=Mon ...)
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  // Convert Sun=0 to Mon=0 offset
+  const startOffset = (firstDay + 6) % 7;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+
+  let html = '';
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) html += '<div class="cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const count = countByDate[dateStr] || 0;
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const isSelected = calFilterDate === dateStr;
+    const hasActivity = count > 0;
+    let cls = 'cal-day';
+    if (hasActivity) cls += ' has-activity';
+    else cls += ' inactive';
+    const style = isToday ? 'outline:2px solid var(--gold);outline-offset:2px;' : '';
+    const selectedStyle = isSelected ? 'background:var(--gold)!important;color:#0f0f0f!important;' : '';
+    const onclick = hasActivity ? `calSelectDate('${dateStr}')` : '';
+    html += `<div class="${cls}" style="${style}${selectedStyle}" onclick="${onclick}" title="${hasActivity ? count + ' reporte' + (count>1?'s':'') : ''}">
+      ${d}
+      ${hasActivity ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function calSelectDate(dateStr) {
+  if (calFilterDate === dateStr) {
+    calFilterDate = null; // deselect
+  } else {
+    calFilterDate = dateStr;
+  }
+  renderCalendar();
+  renderReportCards();
+}
+
+function renderReportCards() {
+  const container = document.getElementById('reports-cards');
+  const countEl = document.getElementById('reports-count');
+  const filterLabel = document.getElementById('reports-filter-label');
+
+  let filtered = allReportsData;
+  if (calFilterDate) {
+    filtered = allReportsData.filter(r => r.created_at?.startsWith(calFilterDate));
+    if (filterLabel) filterLabel.textContent = `Filtrando: ${calFilterDate}  ×`;
+    if (filterLabel) filterLabel.style.cursor = 'pointer';
+    if (filterLabel) filterLabel.onclick = () => { calFilterDate = null; renderCalendar(); renderReportCards(); };
+  } else {
+    if (filterLabel) filterLabel.textContent = '';
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Sin reportes</h3><p>' + (calFilterDate ? 'No hay reportes en esta fecha' : 'No hay reportes aún') + '</p></div>';
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+
+  if (countEl) countEl.textContent = `${filtered.length} reporte${filtered.length !== 1 ? 's' : ''}`;
+
+  const tMap = allTerritoryMap;
+  const formMap = allFormMap;
+
+  container.innerHTML = filtered.map(r => {
+    const t = tMap[r.territory_id] || tMap[r.territory_num];
+    const isNone = r.not_covered;
+    const coverage = isNone ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    const doneManzanas = new Set((r.manzanas_done||[]).map(m => m.toLowerCase()));
+    const tNum = t?.number ?? r.territory_num;
+    const tName = t?.name || `Territorio ${tNum}`;
+    const svgHtml = t?.svg_data
+      ? buildPreviewSvg(t.svg_data, t.manzanas||[], doneManzanas, r.all_territory)
+      : renderReportTiles(t?.manzanas||[], doneManzanas, r.all_territory);
+    const hostName = r.host_name;
+    const dateStr = r.created_at ? r.created_at.split('T')[0] : '';
+
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s"
+      onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="padding:12px 14px 10px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+          <span style="font-weight:600;font-size:13px">${hostName}</span>
+          <span class="badge badge-green" style="font-size:10px">✓</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">${tName} · ${dateStr}</div>
+      </div>
+      <div style="padding:14px;background:var(--surface2);display:flex;align-items:center;justify-content:center;min-height:110px">
+        ${svgHtml}
+      </div>
+      <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${isNone
+            ? '<span class="badge badge-dim" style="font-size:10px">No abarcado</span>'
+            : `<span style="font-size:12px;font-weight:700;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span>
+               <span class="progress-bar" style="width:40px"><span class="progress-fill" style="width:${coverage}%;background:${coverage===100?'var(--green)':'var(--gold)'}"></span></span>`}
+        </div>
+        <button onclick="deleteReport('${r.id}')" title="Eliminar"
+          style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:18px;line-height:1;padding:0;transition:color .15s"
+          onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Shared territory/form lookup tables for the reports renderer
+let allTerritoryMap = {};
+let allFormMap = {};
+
 async function loadReports() {
   const [repRes, terRes, formRes] = await Promise.all([
     sb('territory_reports?select=*&order=created_at.desc', { method:'GET' }),
     sb('territories?select=*', { method:'GET' }),
     sb('territory_forms?select=*', { method:'GET' })
   ]);
-  const reports = await repRes.json();
+  allReportsData = await repRes.json();
   const territories = await terRes.json();
   const forms = await formRes.json();
 
-  const tMap = {};
-  if (Array.isArray(territories)) territories.forEach(t => { tMap[t.number] = t; tMap[t.id] = t; });
+  allTerritoryMap = {};
+  if (Array.isArray(territories)) territories.forEach(t => { allTerritoryMap[t.number] = t; allTerritoryMap[t.id] = t; });
+  allFormMap = {};
+  if (Array.isArray(forms)) forms.forEach(f => allFormMap[f.id] = f);
 
-  const formMap = {};
-  if (Array.isArray(forms)) forms.forEach(f => formMap[f.id] = f);
+  if (!Array.isArray(allReportsData)) allReportsData = [];
 
-  const byForm = {};
-  reports.forEach(r => {
-    if (!byForm[r.form_id]) byForm[r.form_id] = [];
-    byForm[r.form_id].push(r);
-  });
-
-  const container = document.getElementById('reports-cards');
-  const countEl = document.getElementById('reports-count');
-
-  if (!reports.length) {
-    container.innerHTML = '<div class="empty-state"><h3>Sin reportes aún</h3></div>';
-    countEl.textContent = ''; return;
-  }
-
-  countEl.textContent = `${reports.length} reporte${reports.length !== 1 ? 's' : ''}`;
-
-  const DAYS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-  function formatDayHeader(dateStr) {
-    if (!dateStr || dateStr === 'Sin fecha') return { long: 'Sin fecha', short: '–' };
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    const dayName = DAYS_ES[date.getDay()];
-    return {
-      long: `${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, ${d} de ${MONTHS_ES[m-1]} ${y}`,
-      short: `${dayName.charAt(0).toUpperCase() + dayName.slice(1).slice(0,2)}. ${d}/${m}`,
-      isSaturday: date.getDay() === 6
-    };
-  }
-
-  // Group by assignment_date
-  const byDate = {};
-  Object.entries(byForm).forEach(([formId, reps]) => {
-    const form = formMap[formId];
-    const dk = form?.assignment_date || 'Sin fecha';
-    if (!byDate[dk]) byDate[dk] = [];
-    byDate[dk].push([formId, reps]);
-  });
-
-  const sortedDates = Object.keys(byDate).sort((a, b) => {
-    if (a === 'Sin fecha') return 1;
-    if (b === 'Sin fecha') return -1;
-    return b.localeCompare(a);
-  });
-
-  // Build card HTML for one report group
-  function buildReportCard(formId, reps) {
-    const hostName = reps[0].host_name;
-    const mapsHtml = reps.map(r => {
-      const t = tMap[r.territory_id] || tMap[r.territory_num];
-      const isNone = r.not_covered;
-      const coverage = isNone ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
-      const doneManzanas = new Set((r.manzanas_done||[]).map(m => m.toLowerCase()));
-      const tNum = t?.number ?? r.territory_num;
-      const tName = t?.name || `Territorio ${tNum}`;
-      const svgHtml = t?.svg_data
-        ? buildPreviewSvg(t.svg_data, t.manzanas||[], doneManzanas, r.all_territory)
-        : renderReportTiles(t?.manzanas||[], doneManzanas, r.all_territory);
-      return `
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-align:center">${tName}</div>
-        <div style="width:100%;display:flex;align-items:center;justify-content:center;min-height:120px;opacity:${isNone?'0.35':'1'}">${svgHtml}</div>
-        <div style="display:flex;align-items:center;gap:6px">
-          ${isNone
-            ? '<span class="badge badge-dim" style="font-size:10px">No abarcado</span>'
-            : `<span style="font-size:12px;font-weight:600;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span>
-               <span class="progress-bar" style="width:48px"><span class="progress-fill" style="width:${coverage}%;background:${coverage===100?'var(--green)':'var(--gold)'}"></span></span>`}
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);text-align:center">
-          ${r.all_territory ? '<span class="badge badge-green" style="font-size:10px">Completo</span>'
-            : isNone ? ''
-            : (r.manzanas_done||[]).map(m=>`<span class="badge badge-gold" style="font-size:10px">${m}</span>`).join(' ')}
-        </div>
-        <button onclick="deleteReport('${r.id}')" title="Eliminar"
-          style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text-dim);padding:3px 10px;font-size:11px;transition:all .15s"
-          onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'"
-          onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)'">Eliminar</button>
-      </div>`;
-    }).join(`<div style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></div>`);
-
-    return `
-    <div class="report-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s;min-width:260px"
-      onmouseover="this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:14px">${hostName}</div>
-        <span class="badge badge-green" style="font-size:11px">✓ Enviado</span>
-      </div>
-      <div style="padding:16px;background:var(--surface2);display:flex;gap:8px;align-items:flex-start">
-        ${mapsHtml}
-      </div>
-    </div>`;
-  }
-
-  // ── Render: horizontal calendar strip ──
-  // Each date = one column. Saturday is collapsible (starts collapsed).
-  container.style.display = 'block';
-
-  container.innerHTML = `
-  <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:8px;align-items:flex-start">
-    ${sortedDates.map((dk, i) => {
-      const { long, isSaturday } = formatDayHeader(dk);
-      const groups = byDate[dk].sort((a, b) =>
-        (formMap[a[0]]?.host_name||'').toLowerCase().localeCompare((formMap[b[0]]?.host_name||'').toLowerCase())
-      );
-      const colId = `col-${i}`;
-      const startCollapsed = isSaturday;
-      const count = groups.length;
-
-      const cardsHtml = groups.map(([fid, reps]) => buildReportCard(fid, reps)).join('');
-
-      return `
-      <div style="flex:0 0 auto;width:320px;border-right:1px solid var(--border);padding:0 20px 20px;${i===0?'padding-left:0':''}">
-
-        <!-- Day header — clickable for Saturday -->
-        <div onclick="${isSaturday ? `toggleReportCol('${colId}')` : ''}"
-          style="position:sticky;top:0;z-index:10;background:var(--bg);padding:0 0 16px;margin-bottom:4px;
-            ${isSaturday ? 'cursor:pointer;user-select:none;' : ''}">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-top:2px">
-            <div>
-              <div style="font-family:'DM Serif Display',serif;font-size:17px;line-height:1.2">${long}</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${count} reporte${count!==1?'s':''}</div>
-            </div>
-            ${isSaturday ? `
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-              <span class="badge badge-gold" style="font-size:10px">Sábado</span>
-              <svg id="${colId}-chevron" width="14" height="14" fill="none" stroke="var(--text-muted)" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
-                style="transition:transform .22s;transform:rotate(${startCollapsed?'-90':'0'}deg)">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </div>` : ''}
-          </div>
-          <div style="height:1px;background:var(--border);margin-top:12px"></div>
-        </div>
-
-        <!-- Cards -->
-        <div id="${colId}" style="display:flex;flex-direction:column;gap:12px;${startCollapsed?'display:none':''}" >
-          ${cardsHtml}
-        </div>
-
-        ${startCollapsed ? `<div id="${colId}-placeholder" style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px 0">
-          Toca para ver ${count} reporte${count!==1?'s':''}
-        </div>` : ''}
-
-      </div>`;
-    }).join('')}
-  </div>`;
-}
-
-function toggleReportCol(id) {
-  const col = document.getElementById(id);
-  const chevron = document.getElementById(id + '-chevron');
-  const placeholder = document.getElementById(id + '-placeholder');
-  const isHidden = col.style.display === 'none';
-  col.style.display = isHidden ? 'flex' : 'none';
-  col.style.flexDirection = 'column';
-  col.style.gap = '12px';
-  if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
-  if (placeholder) placeholder.style.display = isHidden ? 'none' : 'block';
+  renderCalendar();
+  renderReportCards();
 }
 
 
@@ -1518,58 +1894,35 @@ async function deleteReport(id) {
 }
 
 // ── TERRITORIES PANEL ──
-let territoryFilterMode = 'number';
-
-function setTerritoryFilter(mode) {
-  territoryFilterMode = mode;
-  document.getElementById('filter-btn-number').style.background = mode === 'number' ? 'var(--gold)' : 'transparent';
-  document.getElementById('filter-btn-number').style.color = mode === 'number' ? '#0f0f0f' : 'var(--text-muted)';
-  document.getElementById('filter-btn-frequency').style.background = mode === 'frequency' ? 'var(--gold)' : 'transparent';
-  document.getElementById('filter-btn-frequency').style.color = mode === 'frequency' ? '#0f0f0f' : 'var(--text-muted)';
-  loadTerritories();
-}
-
 async function loadTerritories() {
   const res = await sb('territories?select=*&order=number.asc', { method:'GET' });
   let territories = await res.json();
   if (!Array.isArray(territories)) territories = [];
 
+  // Always sort by number
+  territories.sort((a, b) => a.number - b.number);
+
   const sub = document.getElementById('territories-subtitle');
   if (sub) sub.textContent = `${territories.length} territorio${territories.length !== 1 ? 's' : ''} configurado${territories.length !== 1 ? 's' : ''}`;
 
-  // For frequency mode: fetch all reports to compute last-worked date per territory
-  let lastWorkedMap = {}; // territory id → latest assignment_date
-  if (territoryFilterMode === 'frequency') {
-    const [repRes, formRes] = await Promise.all([
-      sb('territory_reports?select=territory_id,territory_num,form_id', { method:'GET' }),
-      sb('territory_forms?select=id,assignment_date', { method:'GET' })
-    ]);
-    const repData = await repRes.json();
-    const formData = await formRes.json();
-    const formDateMap = {};
-    if (Array.isArray(formData)) formData.forEach(f => formDateMap[f.id] = f.assignment_date);
-    if (Array.isArray(repData)) {
-      repData.forEach(r => {
-        const assignDate = formDateMap[r.form_id] || null;
-        if (!assignDate) return;
-        const key = r.territory_id || String(r.territory_num);
-        if (!lastWorkedMap[key] || assignDate > lastWorkedMap[key]) lastWorkedMap[key] = assignDate;
-      });
-    }
-  }
+  // Fetch all reports to compute usage counts per territory
+  const [repRes, formRes] = await Promise.all([
+    sb('territory_reports?select=territory_id,territory_num,form_id,host_name,created_at,all_territory,manzanas_done,total_manzanas,not_covered', { method:'GET' }),
+    sb('territory_forms?select=id,assignment_date', { method:'GET' })
+  ]);
+  const repData = await repRes.json();
+  const formData = await formRes.json();
+  const formDateMap = {};
+  if (Array.isArray(formData)) formData.forEach(f => formDateMap[f.id] = f.assignment_date);
 
-  // Sort territories
-  if (territoryFilterMode === 'frequency') {
-    territories.sort((a, b) => {
-      const ka = a.id || String(a.number);
-      const kb = b.id || String(b.number);
-      const da = lastWorkedMap[ka] || '0000-00-00';
-      const db = lastWorkedMap[kb] || '0000-00-00';
-      if (da !== db) return da.localeCompare(db); // never-worked first, then oldest
-      return a.number - b.number;
+  // Build per-territory report list
+  const territoryReports = {}; // key → array of report objects
+  if (Array.isArray(repData)) {
+    repData.forEach(r => {
+      const key = r.territory_id || String(r.territory_num);
+      if (!territoryReports[key]) territoryReports[key] = [];
+      territoryReports[key].push({ ...r, assignDate: formDateMap[r.form_id] || null });
     });
-  } else {
-    territories.sort((a, b) => a.number - b.number);
   }
 
   const grid = document.getElementById('territories-grid');
@@ -1604,25 +1957,26 @@ async function loadTerritories() {
       }
     }
 
-    const tIdx = territories.indexOf(t);
-    const isPriority = territoryFilterMode === 'frequency' && tIdx < 5;
-    const ka = t.id || String(n);
-    const lastDate = lastWorkedMap[ka];
+    const key = t.id || String(n);
+    const reps = territoryReports[key] || [];
+    const timesWorked = reps.length;
+    const lastRep = reps.sort((a,b) => (b.assignDate||'').localeCompare(a.assignDate||''))[0];
+    const lastDate = lastRep?.assignDate;
     const lastLabel = lastDate
       ? (() => { const [y,mo,d] = lastDate.split('-').map(Number); return `Último: ${d}/${mo}/${y}`; })()
       : 'Nunca trabajado';
 
     return `
-    <div class="form-card" style="${isPriority ? 'border-color:var(--gold);' : ''}">
+    <div class="form-card">
       <div class="form-card-header">
-        <div class="form-card-num" style="${isPriority ? 'background:var(--gold);' : ''}">${n}</div>
+        <div class="form-card-num">${n}</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          ${isPriority ? '<span class="badge badge-gold" style="font-size:10px">⬆ Prioridad</span>' : ''}
           ${hasSvg ? '<span class="badge badge-green">SVG</span>' : '<span class="badge badge-dim">Sin SVG</span>'}
+          ${timesWorked > 0 ? `<span class="badge badge-gold">${timesWorked}× trabajado</span>` : ''}
         </div>
       </div>
       <h3 style="margin-bottom:4px">${t?.name || `Territorio ${n}`}</h3>
-      ${territoryFilterMode === 'frequency' ? `<p style="font-size:11px;color:${lastDate ? 'var(--text-muted)' : 'var(--red)'};margin-bottom:4px">${lastLabel}</p>` : ''}
+      <p style="font-size:11px;color:${lastDate ? 'var(--text-muted)' : 'var(--red)'};margin-bottom:4px">${lastLabel}</p>
       <p>${mcount ? `${mcount} manzana${mcount!==1?'s':''}: ${(t.manzanas||[]).join(', ')}` : 'Sin manzanas configuradas'}</p>
 
       ${hasSvg ? `
@@ -1632,6 +1986,11 @@ async function loadTerritories() {
       </div>` : '<div style="margin:14px 0 10px"></div>'}
 
       <div class="form-card-actions">
+        ${timesWorked > 0 ? `
+        <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="openTerritoryHistory('${t.id}', ${n})">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Historial
+        </button>` : ''}
         <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="openTerritoryModal('${t.id}')">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Editar
@@ -1640,6 +1999,55 @@ async function loadTerritories() {
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           Eliminar
         </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TERRITORY HISTORY ──
+async function openTerritoryHistory(territoryId, territoryNum) {
+  document.getElementById('thm-title').textContent = `Territorio ${territoryNum}`;
+  document.getElementById('thm-subtitle').textContent = 'Historial de actividad';
+  document.getElementById('thm-content').innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  document.getElementById('territory-history-modal').classList.remove('hidden');
+
+  const [repRes, formRes] = await Promise.all([
+    sb(`territory_reports?or=(territory_id.eq.${territoryId},territory_num.eq.${territoryNum})&select=*&order=created_at.desc`, { method:'GET' }),
+    sb('territory_forms?select=id,assignment_date', { method:'GET' })
+  ]);
+  const reps = await repRes.json();
+  const forms = await formRes.json();
+  const formDateMap = {};
+  if (Array.isArray(forms)) forms.forEach(f => formDateMap[f.id] = f.assignment_date);
+
+  const content = document.getElementById('thm-content');
+
+  if (!Array.isArray(reps) || !reps.length) {
+    content.innerHTML = '<div class="empty-state"><h3>Sin historial</h3><p>Este territorio no ha sido trabajado aún.</p></div>';
+    return;
+  }
+
+  document.getElementById('thm-subtitle').textContent = `${reps.length} vez${reps.length !== 1 ? ' trabajado' : ' trabajada'}`;
+
+  content.innerHTML = reps.map(r => {
+    const date = formDateMap[r.form_id] || r.created_at?.split('T')[0] || '–';
+    const coverage = r.not_covered ? 0 : r.all_territory ? 100 : Math.round((r.manzanas_done?.length||0)/(r.total_manzanas||1)*100);
+    const manzadasHtml = r.all_territory
+      ? '<span class="badge badge-green" style="font-size:11px">Territorio completo</span>'
+      : r.not_covered
+        ? '<span class="badge badge-dim" style="font-size:11px">No abarcado</span>'
+        : (r.manzanas_done||[]).map(m=>`<span class="badge badge-gold" style="font-size:11px">${m}</span>`).join(' ');
+
+    return `
+    <div class="history-entry">
+      <div class="history-dot"></div>
+      <div class="history-meta">
+        <div class="history-date">${formatDate(date)}</div>
+        <div class="history-who">Publicador: ${r.host_name || '–'}</div>
+        <div class="history-coverage">
+          ${r.not_covered ? '' : `<span style="font-weight:700;color:${coverage===100?'var(--green)':'var(--gold)'}">${coverage}%</span> · `}
+          <span style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${manzadasHtml}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
