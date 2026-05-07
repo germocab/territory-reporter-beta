@@ -414,48 +414,15 @@
     .mobile-topbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       position: sticky;
       top: 0;
       z-index: 200;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
-      gap: 10px;
+      padding: 10px 16px;
       box-shadow: 0 1px 12px rgba(0,0,0,0.12);
     }
-    .mobile-topbar-logo {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-    .mobile-topbar-icon {
-      width: 30px; height: 30px;
-      background: var(--gold); border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'DM Serif Display', serif;
-      font-size: 15px; color: #0f0f0f; flex-shrink: 0;
-    }
-    .mobile-topbar-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 17px; font-weight: 400;
-    }
-    .mobile-topbar-actions {
-      display: flex; align-items: center; gap: 6px;
-    }
-    .mobile-topbar-btn {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text-muted);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-      flex-shrink: 0;
-    }
-    .mobile-topbar-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .mobile-topbar-btn svg { stroke: currentColor; }
 
     /* Show mobile bottom nav */
     .mobile-bottomnav {
@@ -683,6 +650,79 @@
     font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
   }
 
+  /* ─── SIDEBAR BOTTOM (profile + theme) ─── */
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sidebar-profile-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; cursor: pointer; border-radius: 10px;
+    margin: 4px 8px; transition: background 0.15s;
+    user-select: none;
+  }
+  .sidebar-profile-btn:hover { background: var(--surface2); }
+
+  .sidebar-profile-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold); color: #0f0f0f;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "DM Serif Display", serif; font-size: 15px;
+    font-weight: 700; flex-shrink: 0; overflow: hidden;
+  }
+
+  .sidebar-profile-info { flex: 1; min-width: 0; }
+  .sidebar-profile-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-profile-cong { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .sidebar-profile-dropdown {
+    margin: 0 8px 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    animation: fadeUp 0.18s ease;
+  }
+  .sidebar-profile-action {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 10px 14px; background: none; border: none;
+    color: var(--text-muted); font-family: "Instrument Sans", sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer; text-align: left;
+    transition: background 0.12s, color 0.12s;
+  }
+  .sidebar-profile-action:hover { background: var(--border); color: var(--text); }
+
+  /* ─── MOBILE USER BUTTON and DROPDOWN ─── */
+  .mobile-user-btn { cursor: pointer; flex-shrink: 0; }
+  .mobile-user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gold); color: #0f0f0f;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "DM Serif Display", serif; font-size: 14px;
+    font-weight: 700; overflow: hidden;
+    border: 2px solid var(--border);
+    transition: border-color 0.15s;
+  }
+  .mobile-user-btn:hover .mobile-user-avatar { border-color: var(--gold); }
+
+  .mobile-user-dropdown {
+    position: fixed; top: 56px; right: 12px; z-index: 300;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; min-width: 180px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+    animation: scaleIn 0.18s ease;
+  }
+  .mobile-user-action {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 13px 16px; background: none; border: none;
+    color: var(--text-muted); font-family: "Instrument Sans", sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer; text-align: left;
+    transition: background 0.12s, color 0.12s;
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-user-action:last-child { border-bottom: none; }
+  .mobile-user-action:hover { background: var(--surface2); color: var(--text); }
+
   /* ─── MOBILE: reports panel fix ─── */
   @media (max-width: 768px) {
     .reports-grid-4 { grid-template-columns: 1fr 1fr; }
@@ -872,19 +912,26 @@
 
   <!-- ── MOBILE TOP BAR (visible only on mobile) ── -->
   <header class="mobile-topbar">
-    <div class="mobile-topbar-logo">
-      <div class="mobile-topbar-icon">TR</div>
-      <div>
-        <span class="mobile-topbar-title">Territory Reporter</span>
-        <div style="font-size:10px;color:var(--text-muted)" id="mobile-congregation-label"></div>
+    <!-- User avatar button -->
+    <div class="mobile-user-btn" onclick="toggleMobileUserMenu()" id="mobile-user-btn">
+      <div class="mobile-user-avatar" id="mobile-user-avatar">
+        <span id="mobile-user-initials"></span>
+        <img id="mobile-user-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
       </div>
     </div>
-    <div class="mobile-topbar-actions">
-      <button class="mobile-topbar-btn" onclick="toggleTheme()" title="Cambiar tema" id="mobile-theme-btn">
-        <svg id="mobile-theme-icon" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"></svg>
+    <!-- Mobile user dropdown -->
+    <div class="mobile-user-dropdown hidden" id="mobile-user-dropdown">
+      <button class="mobile-user-action" onclick="toggleTheme();toggleMobileUserMenu()" id="mobile-theme-btn">
+        <svg id="mobile-theme-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"></svg>
+        <span id="mobile-theme-label-text">Cambiar tema</span>
       </button>
-      <button class="mobile-topbar-btn" onclick="doLogout()" title="Salir" style="color:var(--red);border-color:var(--red)">
-        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <button class="mobile-user-action" onclick="openProfileModal();toggleMobileUserMenu()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Editar perfil
+      </button>
+      <button class="mobile-user-action" onclick="doLogout()" style="color:var(--red)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
       </button>
     </div>
   </header>
@@ -923,10 +970,9 @@
       <div class="sidebar-logo-icon">TR</div>
       <span>Territory Reporter</span>
     </div>
-    <div class="sidebar-congregation" id="sidebar-congregation-label"></div>
     <a class="nav-item active" onclick="showPanel('dashboard')" data-panel="dashboard">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
+      Inicio
     </a>
     <a class="nav-item" onclick="showPanel('forms')" data-panel="forms">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -940,23 +986,43 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
       Territorios
     </a>
-
-    <button class="theme-toggle" onclick="toggleTheme()" id="sidebar-theme-btn">
-      <span class="theme-toggle-icon" id="sidebar-theme-icon"></span>
-      <span id="sidebar-theme-label">Modo claro</span>
-    </button>
-    <a class="nav-item" onclick="openProfileModal()" style="cursor:pointer">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Mi perfil
-    </a>
     <a class="nav-item" id="admin-reset-nav" onclick="openAdminResetModal()" style="cursor:pointer;display:none">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Resetear cuentas
     </a>
-    <a class="nav-item" onclick="doLogout()" style="color:var(--red)">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Salir
-    </a>
+
+    <!-- Bottom section -->
+    <div class="sidebar-bottom">
+      <button class="theme-toggle" onclick="toggleTheme()" id="sidebar-theme-btn">
+        <span class="theme-toggle-icon" id="sidebar-theme-icon"></span>
+        <span id="sidebar-theme-label">Modo claro</span>
+      </button>
+
+      <!-- Profile dropdown toggle -->
+      <div class="sidebar-profile-btn" onclick="toggleSidebarProfile()" id="sidebar-profile-btn">
+        <div class="sidebar-profile-avatar" id="sidebar-profile-avatar">
+          <span id="sidebar-profile-initials"></span>
+          <img id="sidebar-profile-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        </div>
+        <div class="sidebar-profile-info">
+          <div class="sidebar-profile-name" id="sidebar-profile-name"></div>
+          <div class="sidebar-profile-cong" id="sidebar-congregation-label"></div>
+        </div>
+        <svg id="sidebar-profile-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;color:var(--text-dim);transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+
+      <!-- Profile dropdown -->
+      <div class="sidebar-profile-dropdown hidden" id="sidebar-profile-dropdown">
+        <button class="sidebar-profile-action" onclick="openProfileModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Editar perfil
+        </button>
+        <button class="sidebar-profile-action" onclick="doLogout()" style="color:var(--red)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
   </nav>
 
   <!-- Main content -->
@@ -1336,6 +1402,19 @@
       <h2 style="font-size:18px">Mi perfil</h2>
       <button onclick="closeModal('profile-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:0">×</button>
     </div>
+    <!-- Photo upload -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div id="prof-photo-preview" style="width:60px;height:60px;border-radius:50%;background:var(--gold);color:#0f0f0f;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:24px;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid var(--border);transition:border-color .15s" onclick="document.getElementById('prof-photo-input').click()" title="Cambiar foto">
+        <span id="prof-photo-initials"></span>
+        <img id="prof-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;">
+      </div>
+      <div>
+        <button class="btn btn-ghost" onclick="document.getElementById('prof-photo-input').click()" style="padding:7px 14px;font-size:12px">Subir foto</button>
+        <button id="prof-photo-remove" class="btn btn-ghost" onclick="removeProfilePhoto()" style="padding:7px 14px;font-size:12px;margin-left:6px;display:none">Quitar foto</button>
+        <input type="file" id="prof-photo-input" accept="image/*" class="hidden" onchange="handleProfilePhoto(event)">
+        <p style="font-size:11px;color:var(--text-muted);margin-top:5px">JPG, PNG · Máx 2MB</p>
+      </div>
+    </div>
     <div class="form-group">
       <label>Nombre completo</label>
       <input type="text" id="prof-name" placeholder="Tu nombre">
@@ -1513,9 +1592,11 @@ function updateThemeButtons(mode) {
   const label = document.getElementById('sidebar-theme-label');
   if (icon) icon.innerHTML = makeThemeIcon(isDark, 15, 2);
   if (label) label.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
-  // Mobile top bar theme button
+  // Mobile dropdown theme button
   const mobileIcon = document.getElementById('mobile-theme-icon');
+  const mobileLabelText = document.getElementById('mobile-theme-label-text');
   if (mobileIcon) mobileIcon.innerHTML = isDark ? SUN_SVG : MOON_SVG;
+  if (mobileLabelText) mobileLabelText.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
   // Host floating button — heavier stroke, inherits --text color via CSS
   const hostIcon = document.getElementById('host-theme-icon');
   if (hostIcon) hostIcon.innerHTML = isDark ? SUN_SVG : MOON_SVG;
@@ -1831,7 +1912,71 @@ function openProfileModal() {
   document.getElementById('prof-new-pw').value = '';
   document.getElementById('prof-confirm-pw').value = '';
   document.getElementById('prof-error').classList.add('hidden');
+
+  // Load current photo in modal
+  const name = currentAccount?.name || '';
+  const initials = name.charAt(0).toUpperCase() || 'U';
+  const photoKey = currentAccount?.username ? 'profile_photo_' + currentAccount.username : null;
+  const photoUrl = photoKey ? localStorage.getItem(photoKey) : null;
+
+  const initEl = document.getElementById('prof-photo-initials');
+  const imgEl = document.getElementById('prof-photo-img');
+  const removeBtn = document.getElementById('prof-photo-remove');
+  if (initEl) initEl.textContent = initials;
+  if (imgEl && initEl) {
+    if (photoUrl) {
+      imgEl.src = photoUrl; imgEl.style.display = 'block';
+      initEl.style.display = 'none';
+      if (removeBtn) removeBtn.style.display = 'inline-flex';
+    } else {
+      imgEl.style.display = 'none'; initEl.style.display = 'block';
+      if (removeBtn) removeBtn.style.display = 'none';
+    }
+  }
+
+  // Close sidebar dropdown if open
+  const sidebarDropdown = document.getElementById('sidebar-profile-dropdown');
+  if (sidebarDropdown) sidebarDropdown.classList.add('hidden');
+  const chevron = document.getElementById('sidebar-profile-chevron');
+  if (chevron) chevron.style.transform = '';
+
   document.getElementById('profile-modal').classList.remove('hidden');
+}
+
+function handleProfilePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('La imagen debe pesar menos de 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const url = e.target.result;
+    const photoKey = 'profile_photo_' + (currentAccount?.username || 'user');
+    localStorage.setItem(photoKey, url);
+
+    const imgEl = document.getElementById('prof-photo-img');
+    const initEl = document.getElementById('prof-photo-initials');
+    const removeBtn = document.getElementById('prof-photo-remove');
+    if (imgEl) { imgEl.src = url; imgEl.style.display = 'block'; }
+    if (initEl) initEl.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'inline-flex';
+
+    updateProfilePhoto();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfilePhoto() {
+  const photoKey = 'profile_photo_' + (currentAccount?.username || 'user');
+  localStorage.removeItem(photoKey);
+
+  const imgEl = document.getElementById('prof-photo-img');
+  const initEl = document.getElementById('prof-photo-initials');
+  const removeBtn = document.getElementById('prof-photo-remove');
+  if (imgEl) { imgEl.src = ''; imgEl.style.display = 'none'; }
+  if (initEl) { initEl.style.display = 'block'; }
+  if (removeBtn) removeBtn.style.display = 'none';
+
+  updateProfilePhoto();
 }
 
 async function saveProfile() {
@@ -1875,11 +2020,16 @@ async function saveProfile() {
   currentAccount.congregation = congregation;
   sessionStorage.setItem('active_account', JSON.stringify(currentAccount));
 
-  // Update UI labels
-  const sidebarEl = document.getElementById('sidebar-congregation-label');
-  const mobileEl = document.getElementById('mobile-congregation-label');
-  if (sidebarEl) sidebarEl.textContent = congregation;
-  if (mobileEl) mobileEl.textContent = congregation;
+  // Update UI labels in sidebar
+  const sidebarName = document.getElementById('sidebar-profile-name');
+  const sidebarCong = document.getElementById('sidebar-congregation-label');
+  const sidebarInitials = document.getElementById('sidebar-profile-initials');
+  if (sidebarName) sidebarName.textContent = name;
+  if (sidebarCong) sidebarCong.textContent = congregation;
+  if (sidebarInitials) sidebarInitials.textContent = name.charAt(0).toUpperCase();
+
+  const mobileInitials = document.getElementById('mobile-user-initials');
+  if (mobileInitials) mobileInitials.textContent = name.charAt(0).toUpperCase();
 
   closeModal('profile-modal');
   toast('¡Perfil actualizado!');
@@ -1958,12 +2108,26 @@ function doLogout() {
 // ════════════════════════════════════════
 function showAdmin() {
   show('admin-screen');
-  // Show congregation in sidebar and mobile topbar
-  const congLabel = currentAccount?.congregation || '';
-  const sidebarEl = document.getElementById('sidebar-congregation-label');
-  const mobileEl = document.getElementById('mobile-congregation-label');
-  if (sidebarEl) sidebarEl.textContent = congLabel;
-  if (mobileEl) mobileEl.textContent = congLabel;
+  // Update sidebar profile section
+  const name = currentAccount?.name || '';
+  const congregation = currentAccount?.congregation || '';
+  const initials = name ? name.charAt(0).toUpperCase() : 'U';
+
+  // Sidebar profile
+  const sidebarName = document.getElementById('sidebar-profile-name');
+  const sidebarCong = document.getElementById('sidebar-congregation-label');
+  const sidebarInitials = document.getElementById('sidebar-profile-initials');
+  if (sidebarName) sidebarName.textContent = name;
+  if (sidebarCong) sidebarCong.textContent = congregation;
+  if (sidebarInitials) sidebarInitials.textContent = initials;
+
+  // Mobile user avatar
+  const mobileInitials = document.getElementById('mobile-user-initials');
+  if (mobileInitials) mobileInitials.textContent = initials;
+
+  // Update profile photo if available
+  updateProfilePhoto();
+
   // Show admin-only nav item for legacy admin
   const resetNav = document.getElementById('admin-reset-nav');
   if (resetNav) resetNav.style.display = currentAccount?.isLegacy ? 'flex' : 'none';
@@ -1975,6 +2139,73 @@ function showAdmin() {
   populateBrothersSelect();
   document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
 }
+
+function updateProfilePhoto() {
+  const photoKey = currentAccount?.username ? 'profile_photo_' + currentAccount.username : null;
+  const photoUrl = photoKey ? localStorage.getItem(photoKey) : null;
+
+  // Sidebar
+  const sidebarImg = document.getElementById('sidebar-profile-img');
+  const sidebarInitials = document.getElementById('sidebar-profile-initials');
+  if (sidebarImg && sidebarInitials) {
+    if (photoUrl) {
+      sidebarImg.src = photoUrl;
+      sidebarImg.style.display = 'block';
+      sidebarInitials.style.display = 'none';
+    } else {
+      sidebarImg.style.display = 'none';
+      sidebarInitials.style.display = 'block';
+    }
+  }
+
+  // Mobile
+  const mobileImg = document.getElementById('mobile-user-img');
+  const mobileInitials = document.getElementById('mobile-user-initials');
+  if (mobileImg && mobileInitials) {
+    if (photoUrl) {
+      mobileImg.src = photoUrl;
+      mobileImg.style.display = 'block';
+      mobileInitials.style.display = 'none';
+    } else {
+      mobileImg.style.display = 'none';
+      mobileInitials.style.display = 'block';
+    }
+  }
+}
+
+function toggleSidebarProfile() {
+  const dropdown = document.getElementById('sidebar-profile-dropdown');
+  const chevron = document.getElementById('sidebar-profile-chevron');
+  const isHidden = dropdown.classList.toggle('hidden');
+  chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+}
+
+function toggleMobileUserMenu() {
+  const dropdown = document.getElementById('mobile-user-dropdown');
+  dropdown.classList.toggle('hidden');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  // Sidebar profile dropdown
+  const sidebarBtn = document.getElementById('sidebar-profile-btn');
+  const sidebarDropdown = document.getElementById('sidebar-profile-dropdown');
+  if (sidebarDropdown && !sidebarDropdown.classList.contains('hidden')) {
+    if (!sidebarBtn?.contains(e.target) && !sidebarDropdown.contains(e.target)) {
+      sidebarDropdown.classList.add('hidden');
+      const chevron = document.getElementById('sidebar-profile-chevron');
+      if (chevron) chevron.style.transform = '';
+    }
+  }
+  // Mobile dropdown
+  const mobileBtn = document.getElementById('mobile-user-btn');
+  const mobileDropdown = document.getElementById('mobile-user-dropdown');
+  if (mobileDropdown && !mobileDropdown.classList.contains('hidden')) {
+    if (!mobileBtn?.contains(e.target) && !mobileDropdown.contains(e.target)) {
+      mobileDropdown.classList.add('hidden');
+    }
+  }
+});
 
 function showPanel(name) {
   document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
