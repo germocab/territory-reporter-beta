@@ -267,14 +267,14 @@
     padding: 40px 28px; text-align: center; animation: fadeUp 0.4s ease;
   }
   .host-welcome-name {
-    font-family: 'DM Serif Display', serif; font-size: 32px; margin-bottom: 8px;
+    font-family: 'Instrument Sans', sans-serif; font-size: 30px; font-weight: 700; margin-bottom: 8px;
   }
-  .host-welcome-name span { color: var(--gold); font-style: italic; }
+  .host-welcome-name span { color: var(--gold); font-style: normal; }
   .host-welcome-sub { color: var(--text-muted); font-size: 15px; margin-bottom: 36px; line-height: 1.5; }
   .territory-badge-big {
     width: 100px; height: 100px; background: var(--gold); border-radius: 28px;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 48px; color: #0f0f0f;
+    font-family: 'Instrument Sans', sans-serif; font-size: 48px; font-weight: 700; color: #0f0f0f;
     margin-bottom: 32px; box-shadow: 0 20px 60px rgba(232,184,75,0.3);
   }
   .host-welcome .btn { padding: 15px 40px; font-size: 15px; }
@@ -284,21 +284,24 @@
     animation: fadeUp 0.3s ease; overflow: hidden;
   }
   .host-select-header {
-    padding: 28px 24px 16px;
+    background: var(--surface);
+    border-radius: 0 0 24px 24px;
+    padding: 52px 24px 20px;
+    margin-bottom: 4px;
+    position: relative;
   }
   .host-select-header .territory-title-row {
     display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
   }
   .host-select-header h2 {
-    font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; line-height: 1;
+    font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; line-height: 1;
   }
   .host-territory-pill {
-    background: #e8194b; color: #fff;
     border-radius: 50%; width: 36px; height: 36px; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif; font-size: 17px; font-weight: 700;
+    font-family: 'Instrument Sans', sans-serif; font-size: 16px; font-weight: 700;
   }
-  .host-select-header p { color: var(--text-muted); font-size: 13px; }
+  .host-select-header p { color: var(--text-muted); font-size: 13px; font-weight: 400; }
 
   .svg-territory-container {
     background: var(--surface); border-radius: 20px;
@@ -356,7 +359,7 @@
     display: inline-flex; align-items: center; justify-content: center;
     font-family: 'DM Serif Display', serif; font-size: 14px; color: #0f0f0f; margin-bottom: 10px;
   }
-  .confirm-summary h3 { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 4px; }
+  .confirm-summary h3 { font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
   .confirm-summary .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
   .confirm-manzanas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .confirm-manzana {
@@ -375,7 +378,7 @@
     display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
     border: 2px solid var(--green);
   }
-  .host-sent h2 { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 6px; }
+  .host-sent h2 { font-family: 'Instrument Sans', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
   .host-sent p { color: var(--text-muted); font-size: 14px; }
 
   /* ─── MODAL ─── */
@@ -667,6 +670,17 @@
   /* ─── HOST SCREEN overrides (new design) ─── */
   html.light #host-screen { background: #f0ede8; }
   html.light #host-screen .svg-territory-container { background: #ffffff; }
+
+  /* Inline theme button inside header card */
+  .host-theme-btn-inline {
+    position: absolute; top: 14px; right: 14px;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .host-theme-btn-inline:hover { border-color: var(--gold); color: var(--text); }
   .sidebar-congregation {
     padding: 0 20px 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
     font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
@@ -1316,7 +1330,7 @@
       <div class="sent-icon" style="margin:0 auto 16px">
         <svg width="32" height="32" fill="none" stroke="var(--green)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px">¡Todo enviado!</h2>
+      <h2 style="font-family:'Instrument Sans',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">¡Todo enviado!</h2>
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:28px">Todos los territorios han sido reportados.</p>
       <button class="btn btn-gold" onclick="hostStep(3)" style="padding:13px 28px;font-size:14px">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -1332,13 +1346,17 @@
   </button>
 
   <div id="host-step-1" class="host-select hidden">
-    <div class="host-select-header" style="padding-top:8px">
+    <div class="host-select-header">
+      <!-- Theme button lives inside the header card -->
+      <button class="host-theme-btn-inline" onclick="toggleTheme()" title="Cambiar tema">
+        <svg id="host-theme-icon-step1" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"></svg>
+      </button>
       <div class="territory-title-row">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:28px">Territorio</h2>
+        <h2>Territorio</h2>
         <span class="host-territory-pill" id="host-territory-pill-num">4</span>
         <span id="host-sel-territory" style="display:none"></span>
       </div>
-      <p style="color:var(--text-muted);font-size:13px">Selecciona las manzanas abarcadas</p>
+      <p>Selecciona las manzanas abarcadas</p>
     </div>
 
     <div class="svg-territory-container" id="svg-container"></div>
@@ -1386,7 +1404,7 @@
   <!-- Step 3: Bonus territory picker -->
   <div id="host-step-3" class="host-select hidden">
     <div class="host-select-header" style="padding-top:8px">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px">¿Cuál territorio hiciste?</h2>
+      <h2 style="font-family:'Instrument Sans',sans-serif;font-size:26px;font-weight:700;margin-bottom:4px">¿Cuál territorio hiciste?</h2>
       <p style="color:var(--text-muted);font-size:13px">Selecciona el territorio adicional</p>
     </div>
     <div id="host-bonus-list" style="display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1;padding-bottom:8px">
@@ -1407,7 +1425,7 @@
     <div style="display:grid;grid-template-columns:100px 1fr;gap:12px;margin-bottom:16px">
       <div class="form-group" style="margin-bottom:0">
         <label>Número</label>
-        <input type="number" id="tm-num-input" placeholder="Ej: 37" min="1" style="text-align:center;font-family:'DM Serif Display',serif;font-size:20px;font-weight:bold">
+        <input type="number" id="tm-num-input" placeholder="Ej: 37" min="1" style="text-align:center;font-family:'Instrument Sans',sans-serif;font-size:20px;font-weight:700">
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Nombre del territorio (opcional)</label>
@@ -1651,6 +1669,9 @@ function updateThemeButtons(mode) {
   // Host floating button — heavier stroke, inherits --text color via CSS
   const hostIcon = document.getElementById('host-theme-icon');
   if (hostIcon) hostIcon.innerHTML = isDark ? SUN_SVG : MOON_SVG;
+  // Step-1 inline header button
+  const step1Icon = document.getElementById('host-theme-icon-step1');
+  if (step1Icon) step1Icon.innerHTML = isDark ? SUN_SVG : MOON_SVG;
 }
 
 // ════════════════════════════════════════
@@ -3303,7 +3324,7 @@ async function initHostScreen(token) {
   const fRes = await sb(`territory_forms?token=eq.${token}&select=*`, { method:'GET' });
   const forms = await fRes.json();
   if (!forms.length) {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;color:var(--text-muted);font-family:Instrument Sans,sans-serif;text-align:center;padding:20px"><div><h2 style="font-family:DM Serif Display,serif;font-size:28px;margin-bottom:8px">Enlace inválido</h2><p>Este enlace no existe o ha expirado.</p></div></div>';
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;color:var(--text-muted);font-family:Instrument Sans,sans-serif;text-align:center;padding:20px"><div><h2 style="font-family:Instrument Sans,sans-serif;font-size:26px;font-weight:700;margin-bottom:8px">Enlace inválido</h2><p>Este enlace no existe o ha expirado.</p></div></div>';
     return;
   }
   hostFormData = forms[0];
@@ -3375,10 +3396,10 @@ function renderHostOverview() {
       <div style="display:flex;flex-direction:column;align-items:center;text-align:center;width:100%">
         <div style="width:100px;height:100px;background:var(--gold);border-radius:28px;
           display:flex;align-items:center;justify-content:center;
-          font-family:'DM Serif Display',serif;font-size:48px;color:#0f0f0f;
+          font-family:'Instrument Sans',sans-serif;font-size:40px;font-weight:700;color:#0f0f0f;
           margin-bottom:32px;box-shadow:0 20px 60px rgba(232,184,75,0.3);">${dispNumSingle}</div>
-        <h1 style="font-family:'DM Serif Display',serif;font-size:32px;margin-bottom:8px">
-          ¡Hola, <span style="color:var(--gold);font-style:italic">${hostFormData.host_name}</span>!
+        <h1 style="font-family:'Instrument Sans',sans-serif;font-size:30px;font-weight:700;margin-bottom:8px">
+          ¡Hola, <span style="color:var(--gold)">${hostFormData.host_name}</span>!
         </h1>
         <p style="color:var(--text-muted);font-size:15px;margin-bottom:36px;line-height:1.5">
           Envía tu informe del territorio<br>de hoy.
@@ -3422,7 +3443,7 @@ function renderHostOverview() {
       <!-- Card header -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:34px;height:34px;background:${done ? 'var(--green)' : 'var(--gold)'};border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:#0f0f0f;flex-shrink:0">${dispNum}</div>
+          <div style="width:34px;height:34px;background:${done ? 'var(--green)' : 'var(--gold)'};border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:15px;font-weight:700;color:#0f0f0f;flex-shrink:0">${dispNum}</div>
           <span style="font-weight:600;font-size:15px">${dispName}</span>
         </div>
         ${done
@@ -3514,21 +3535,33 @@ function extractTerritoryColor(t) {
   } catch (e) { return '#e8b84b'; }
 }
 
+// Returns white or black depending on which gives better contrast against a hex color
+function contrastColor(hex) {
+  const c = hex.replace('#','');
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  // Perceived luminance (WCAG formula)
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? '#0f0f0f' : '#ffffff';
+}
+
 function applyTerritoryColor(num) {
   const t = hostTerritoriesData[num];  // num is slotKey (id or number)
   const color = extractTerritoryColor(t);
+  const textColor = contrastColor(color);
 
   // Apply to Continue button (step 1)
   const btnContinue = document.getElementById('btn-continue');
-  if (btnContinue) { btnContinue.style.background = color; btnContinue.style.color = '#0f0f0f'; }
+  if (btnContinue) { btnContinue.style.background = color; btnContinue.style.color = textColor; }
 
   // Apply to Submit button (step 2)
   const btnSubmit = document.getElementById('btn-submit');
-  if (btnSubmit) { btnSubmit.style.background = color; btnSubmit.style.color = '#0f0f0f'; }
+  if (btnSubmit) { btnSubmit.style.background = color; btnSubmit.style.color = textColor; }
 
   // Apply to territory number pill
   const pill = document.getElementById('host-territory-pill-num');
-  if (pill) { pill.style.background = color; pill.style.color = '#0f0f0f'; }
+  if (pill) { pill.style.background = color; pill.style.color = textColor; }
 }
 
 function startReporting(num) {
@@ -3640,7 +3673,7 @@ async function loadBonusTerritoryList() {
       onmouseover="this.style.borderColor='${color}';this.style.transform='translateY(-1px)'"
       onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
       <div style="width:44px;height:44px;background:${color};border-radius:12px;display:flex;align-items:center;
-        justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;color:#0f0f0f;flex-shrink:0">
+        justify-content:center;font-family:'Instrument Sans',sans-serif;font-size:18px;font-weight:700;color:${contrastColor(color)};flex-shrink:0">
         ${t.number}
       </div>
       <div style="flex:1;min-width:0">
@@ -3781,7 +3814,7 @@ function renderFallbackMap(container, manzanas) {
     ${manzanas.map(m => `
       <div class="manzana-tile" data-manzana="${m}"
         onclick="toggleManzanaTile(this, '${m}')"
-        style="width:64px;height:64px;border-radius:14px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid transparent;transition:background .18s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);font-family:'DM Serif Display',serif;font-size:22px;color:#0f0f0f;font-weight:bold;transform-origin:center">
+        style="width:64px;height:64px;border-radius:14px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid transparent;transition:background .18s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);font-family:'Instrument Sans',sans-serif;font-size:20px;color:#0f0f0f;font-weight:700;transform-origin:center">
         ${m}
       </div>`).join('')}
   </div>`;
